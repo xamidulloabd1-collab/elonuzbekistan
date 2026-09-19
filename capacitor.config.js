@@ -11,7 +11,7 @@
 // tunnel havolasiga o'zgartirib, telefoningizda sinab ko'rishingiz mumkin.
 // Batafsili README.md dagi "Mobil ilova (Capacitor)" bo'limida.
 
-const APP_URL = process.env.CAPACITOR_APP_URL || 'https://SIZNING-DOMENINGIZ.uz';
+const APP_URL = process.env.CAPACITOR_APP_URL || 'https://elonuzbekiston.netlify.app';
 
 /** @type {import('@capacitor/cli').CapacitorConfig} */
 const config = {
