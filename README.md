@@ -74,7 +74,7 @@ elonuz-v2/
 - Har bir yozish amalida server-side validatsiya
 
 **E'lonlar**
-- Yaratish: sarlavha, kategoriya, hudud, narx+valyuta, aloqa raqami, tavsif, bir nechta rasm URL (8 tagacha)
+- Yaratish: sarlavha, kategoriya, hudud, narx+valyuta, aloqa raqami, tavsif, **galereyadan to'g'ridan-to'g'ri rasm yuklash** (8 tagacha, Cloudinary orqali)
 - Tahrirlash/o'chirish — faqat egasiga ruxsat (API darajasida VA sahifa darajasida tekshiriladi)
 - Qidiruv (kalit so'z), kategoriya/hudud/narx oralig'i filtrlari, sahifalash (pagination)
 - Tafsilotlar sahifasi: rasm galereyasi, ko'rishlar soni, muallif kartasi, qo'ng'iroq va Telegram tugmalari
@@ -110,7 +110,22 @@ Lokal PostgreSQL o'rnating yoki [Neon](https://neon.tech) /
 [Supabase](https://supabase.com) kabi bepul bulutli xizmatdan bir daqiqada
 baza oching.
 
-### 2) Sozlash
+### 2) Cloudinary tayyorlash (e'lon rasmlari uchun)
+
+E'lon qo'shishda foydalanuvchi telefon/kompyuter **galereyasidan** rasm
+tanlab yuklaydi (endi shunday ishlaydi) — bu rasmlar [Cloudinary](https://cloudinary.com)
+degan bepul bulutli xizmatda saqlanadi (serverning o'zida saqlash imkonsiz,
+chunki Netlify/Vercel kabi muhitlar doimiy fayl saqlashni qo'llab-quvvatlamaydi).
+
+1. [cloudinary.com](https://cloudinary.com)da bepul ro'yxatdan o'ting.
+2. Bosh sahifada (Dashboard) **"Cloud name"**ni ko'ring va nusxalab oling.
+3. **Settings > Upload > Upload presets > Add upload preset**ga o'ting.
+4. **"Signing Mode"** qatorida **"Unsigned"** ni tanlang (bu brauzerdan
+   to'g'ridan-to'g'ri, maxfiy kalitsiz yuklashga ruxsat beradi — xavfsiz,
+   chunki faqat rasm yuklashga ruxsat beradi, boshqa hech narsaga emas).
+5. Preset nomini eslab qoling (yoki o'zingiz nom bering) va saqlang.
+
+### 3) Sozlash
 
 ```bash
 npm install
@@ -118,18 +133,20 @@ cp .env.example .env
 ```
 
 `.env` faylida:
+
 - `DATABASE_URL` — haqiqiy PostgreSQL manzilingiz
 - `JWT_SECRET` — uzun, tasodifiy maxfiy matn
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — tarif arizalari uchun (ixtiyoriy, lekin tavsiya etiladi)
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — 2-qadamda olganlaringiz
 
-### 3) Bazani yaratish
+### 4) Bazani yaratish
 
 ```bash
 npx prisma generate
 npx prisma migrate dev --name init
 ```
 
-### 4) O'zingizni admin qiling (ixtiyoriy)
+### 5) O'zingizni admin qiling (ixtiyoriy)
 
 Avval saytda oddiy foydalanuvchi sifatida ro'yxatdan o'ting, so'ng:
 
@@ -137,7 +154,7 @@ Avval saytda oddiy foydalanuvchi sifatida ro'yxatdan o'ting, so'ng:
 node scripts/make-admin.js +998901234567
 ```
 
-### 5) Ishga tushirish
+### 6) Ishga tushirish
 
 ```bash
 npm run dev
@@ -307,10 +324,8 @@ yordam beraman — shunchaki ayting.
 
 ## 🔮 Kelajakda qo'shsa bo'ladigan narsalar
 
-- Rasmlarni to'g'ridan-to'g'ri serverga yuklash (hozir faqat URL sifatida)
 - E'lonlar moderatsiyasi (admin panelda e'lonlarni yopish/o'chirish huquqi)
 - Sevimlilar (bookmark) funksiyasi
 - SMS orqali telefon raqamni tasdiqlash
-- Suratlarni [Cloudinary](https://cloudinary.com) yoki S3'ga yuklash integratsiyasi
 - "Tadbirkor" tarifi uchun oylik VIP e'lon kvotasi (hozircha faqat "Biznes" avtomatik VIP oladi)
 # elonuzbekistan

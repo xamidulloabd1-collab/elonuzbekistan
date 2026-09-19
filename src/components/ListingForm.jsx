@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { CATEGORY_LABELS, REGION_LABELS } from '@/lib/labels';
 import { CURRENCIES } from '@/lib/validators';
-import ImageUrlInput from './ImageUrlInput';
+import ImageUploader from './ImageUploader';
 
 const emptyForm = {
   title: '', description: '', category: '', region: '',
@@ -123,7 +123,7 @@ export default function ListingForm({ mode, listingId, initialData }) {
 
       <div>
         <label className="block font-semibold mb-1">Rasmlar</label>
-        <ImageUrlInput images={form.images} onChange={handleImagesChange} />
+        <ImageUploader images={form.images} onChange={handleImagesChange} />
       </div>
 
       <button type="submit" disabled={submitting} className="btn-primary w-full mt-2">
