@@ -1,0 +1,141 @@
+// prisma/schema.prisma
+// ElonUz — ma'lumotlar bazasi sxemasi (PostgreSQL + Prisma ORM)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------
+// ENUM'LAR
+// ------------------------------------------------------------------
+
+// E'lon kategoriyalari
+enum Category {
+  KOCHMAS_MULK   // Ko'chmas mulk
+  TRANSPORT      // Transport
+  ELEKTRONIKA    // Elektronika
+  ISH_ORINLARI   // Ish o'rinlari
+  XIZMATLAR      // Xizmatlar
+  UY_JIHOZLARI   // Uy jihozlari (mebel va h.k.)
+  KIYIM_ODA      // Kiyim-kechak
+  BOSHQA         // Boshqa
+}
+
+// O'zbekiston viloyatlari va Toshkent shahri
+enum Region {
+  TOSHKENT_SHAHAR
+  ANDIJON
+  BUXORO
+  FARGONA
+  JIZZAX
+  XORAZM
+  NAMANGAN
+  NAVOIY
+  QASHQADARYO
+  QORAQALPOGISTON
+  SAMARQAND
+  SIRDARYO
+  SURXONDARYO
+  TOSHKENT_VILOYATI
+}
+
+// Narx valyutasi
+enum Currency {
+  UZS
+  USD
+}
+
+// Foydalanuvchi roli
+enum Role {
+  USER
+  ADMIN
+}
+
+// Pullik tarif turlari (Boshlang'ich - bepul, alohida enum qiymati emas)
+enum SubscriptionPlan {
+  TADBIRKOR   // 50 000 so'm/oy
+  BIZNES      // 120 000 so'm/oy - Makler
+}
+
+// Obuna holati
+enum SubscriptionStatus {
+  NONE      // hech qanday ariza berilmagan (Boshlang'ich/bepul holat)
+  PENDING   // ariza berilgan, admin tasdig'ini kutmoqda
+  ACTIVE    // admin tasdiqlagan, hozir amal qilmoqda
+  EXPIRED   // muddati tugagan
+}
+
+// E'lon holati (moderatsiya uchun zaxira - hozircha barcha e'lonlar avtomatik faol)
+enum ListingStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+// ------------------------------------------------------------------
+// MODELLAR
+// ------------------------------------------------------------------
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  phone        String     @unique
+  passwordHash String
+  telegramUsername String?
+  role         Role       @default(USER)
+
+  // --- Tarif (obuna) holati ---
+  subscriptionPlan      SubscriptionPlan?
+  subscriptionStatus    SubscriptionStatus @default(NONE)
+  subscriptionExpiresAt DateTime?
+  // "Tadbirkor" tarifi uchun joriy davrda (30 kunlik muddat ichida) ishlatilgan
+  // VIP e'lonlar soni. "Biznes" tarifida cheklov yo'q, shuning uchun bu maydon
+  // faqat Tadbirkor uchun ma'noga ega. Har safar admin obunani tasdiqlaganda 0'ga tushadi.
+  vipListingsUsed        Int      @default(0)
+
+  listings     Listing[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+
+  title       String
+  description String        @db.Text
+  category    Category
+  region      Region
+
+  price       Decimal       @db.Decimal(14, 2)
+  currency    Currency      @default(UZS)
+
+  contactPhone String
+
+  // Rasm URL'lari - MVP bosqichida oddiy string massiv sifatida saqlanadi
+  images      String[]      @default([])
+
+  status      ListingStatus @default(ACTIVE)
+  views       Int           @default(0)
+  isVip       Boolean       @default(false) // "Biznes" tarifidagi foydalanuvchi joylaganda avtomatik true
+
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Qidiruv/filtr so'rovlarida tez-tez ishlatiladigan maydonlarga indeks qo'yamiz
+  @@index([category])
+  @@index([region])
+  @@index([price])
+  @@index([createdAt])
+  @@index([isVip])
+  @@map("listings")
+}

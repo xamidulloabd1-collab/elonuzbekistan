@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  @apply bg-white text-gray-800 dark:bg-surface-950 dark:text-gray-100 transition-colors;
+}
+
+/* --- Fon effektlari: xira ko'k "yorug'lik" dog'lari (premium, texnologik hissi uchun) --- */
+.glow-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --- Tugmalar --- */
+.btn-primary {
+  @apply relative bg-brand-gradient text-white font-bold py-3 px-6 rounded-xl text-base
+         transition shadow-glow-sm hover:shadow-glow hover:-translate-y-0.5
+         disabled:opacity-60 disabled:hover:translate-y-0 disabled:shadow-none;
+}
+
+.btn-secondary {
+  @apply bg-white dark:bg-surface-800 border-2 border-gray-200 dark:border-white/10
+         hover:border-brand-400 dark:hover:border-brand-400 text-gray-700 dark:text-gray-200
+         font-semibold py-3 px-6 rounded-xl text-base transition;
+}
+
+.input-field {
+  @apply w-full border-2 border-gray-200 dark:border-white/10 bg-white dark:bg-surface-900
+         rounded-xl py-3 px-4 text-base focus:outline-none focus:border-brand-400
+         focus:ring-4 focus:ring-brand-400/10 transition text-gray-800 dark:text-gray-100;
+}
+
+.card {
+  @apply bg-white dark:bg-surface-900 border border-gray-100 dark:border-white/5
+         rounded-2xl shadow-sm dark:shadow-none;
+}
+
+/* Gradient matn (sarlavhalar uchun "premium" urg'u) */
+.text-gradient {
+  @apply bg-brand-gradient bg-clip-text text-transparent;
+}
+
+/* Skroll-bar'ni ingichka va temaga mos qilish (ixtiyoriy nafis detal) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { @apply bg-gray-300 dark:bg-white/10 rounded-full; }
