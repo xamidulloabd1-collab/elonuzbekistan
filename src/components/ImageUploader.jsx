@@ -2,46 +2,37 @@
 // components/ImageUploader.jsx - Foydalanuvchi telefon/kompyuter galereyasidan
 // rasm tanlab yuklashi uchun komponent.
 //
-// Rasmlar Cloudinary'ga (bepul bulutli xizmat) to'g'ridan-to'g'ri brauzerdan
-// yuklanadi va qaytgan URL manzil `images` massiviga qo'shiladi - bazaning
-// o'zi (Prisma schema) o'zgarmaydi, chunki u allaqachon URL massivini saqlaydi.
-//
-// Bu Netlify/Vercel kabi serverless muhitda ishlashi uchun shart - bunday
-// muhitlarda oddiy server diskiga fayl yozib, uni doimiy saqlab bo'lmaydi.
+// Rasmlar to'g'ridan-to'g'ri o'z serverimizga (/api/upload) yuboriladi, u esa
+// Netlify Blobs'da saqlaydi. Tashqi hisob (Cloudinary va h.k.) kerak emas -
+// Netlify hisobingizning o'zida ishlaydi.
 
 import { useState, useRef } from 'react';
-import { X, ImagePlus, Loader2, ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { X, ImagePlus, Loader2, ImageIcon } from 'lucide-react';
 
 const MAX_IMAGES = 8;
-const MAX_FILE_SIZE_MB = 8;
+const MAX_FILE_SIZE_MB = 5;
 
 export default function ImageUploader({ images, onChange }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [urlDraft, setUrlDraft] = useState('');
   const fileInputRef = useRef(null);
-
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
-  const isConfigured = Boolean(cloudName && uploadPreset);
 
   async function uploadOneFile(file) {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
 
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    const res = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      throw new Error("Rasmni yuklab bo'lmadi");
+      throw new Error(data.message || "Rasmni yuklab bo'lmadi");
     }
 
-    const data = await res.json();
-    return data.secure_url;
+    return data.url;
   }
 
   async function handleFilesSelected(e) {
@@ -75,7 +66,7 @@ export default function ImageUploader({ images, onChange }) {
       onChange([...images, ...uploadedUrls]);
     } catch (err) {
       console.error('Rasm yuklashda xatolik:', err);
-      setError("Rasm yuklashda xatolik yuz berdi, qayta urinib ko'ring");
+      setError(err.message || "Rasm yuklashda xatolik yuz berdi, qayta urinib ko'ring");
     } finally {
       setUploading(false);
     }
@@ -85,53 +76,35 @@ export default function ImageUploader({ images, onChange }) {
     onChange(images.filter((img) => img !== url));
   }
 
-  function addUrlManually() {
-    const url = urlDraft.trim();
-    if (!url) return;
-    if (images.length >= MAX_IMAGES) return;
-    if (!images.includes(url)) {
-      onChange([...images, url]);
-    }
-    setUrlDraft('');
-  }
-
   return (
     <div>
-      {isConfigured ? (
-        <>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleFilesSelected}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || images.length >= MAX_IMAGES}
-            className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {uploading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Yuklanmoqda...
-              </>
-            ) : (
-              <>
-                <ImagePlus size={18} /> Galereyadan rasm tanlash
-              </>
-            )}
-          </button>
-          <p className="text-xs text-gray-400 mt-1 text-center">
-            Bir nechta rasmni birdan tanlashingiz mumkin ({images.length}/{MAX_IMAGES})
-          </p>
-        </>
-      ) : (
-        // Agar Cloudinary sozlanmagan bo'lsa (masalan lokal test muhitida),
-        // eski usul - URL orqali qo'shish - avtomatik ko'rsatiladi
-        <ImageUrlFallback urlDraft={urlDraft} setUrlDraft={setUrlDraft} onAdd={addUrlManually} disabled={images.length >= MAX_IMAGES} />
-      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFilesSelected}
+        className="hidden"
+      />
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading || images.length >= MAX_IMAGES}
+        className="btn-secondary w-full flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        {uploading ? (
+          <>
+            <Loader2 size={18} className="animate-spin" /> Yuklanmoqda...
+          </>
+        ) : (
+          <>
+            <ImagePlus size={18} /> Galereyadan rasm tanlash
+          </>
+        )}
+      </button>
+      <p className="text-xs text-gray-400 mt-1 text-center">
+        Bir nechta rasmni birdan tanlashingiz mumkin ({images.length}/{MAX_IMAGES})
+      </p>
 
       {error && <p className="text-red-500 text-sm mt-2 text-center">{error}</p>}
 
@@ -164,53 +137,6 @@ export default function ImageUploader({ images, onChange }) {
           <ImageIcon size={16} /> Hali rasm qo'shilmagan
         </div>
       )}
-
-      {isConfigured && (
-        <button
-          type="button"
-          onClick={() => setShowUrlInput((v) => !v)}
-          className="text-xs text-gray-400 hover:text-brand-500 mt-3 flex items-center gap-1 mx-auto"
-        >
-          <LinkIcon size={12} /> {showUrlInput ? 'Yashirish' : "Yoki URL orqali qo'shish"}
-        </button>
-      )}
-      {isConfigured && showUrlInput && (
-        <div className="mt-2">
-          <ImageUrlFallback urlDraft={urlDraft} setUrlDraft={setUrlDraft} onAdd={addUrlManually} disabled={images.length >= MAX_IMAGES} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Kichik yordamchi: qo'lda URL kiritish maydoni (Cloudinary sozlanmaganda
-// asosiy usul sifatida, sozlangan bo'lsa ixtiyoriy qo'shimcha sifatida ishlaydi)
-function ImageUrlFallback({ urlDraft, setUrlDraft, onAdd, disabled }) {
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onAdd();
-    }
-  }
-  return (
-    <div className="flex gap-2">
-      <input
-        type="url"
-        value={urlDraft}
-        onChange={(e) => setUrlDraft(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="https://... rasm manzili"
-        className="input-field"
-        disabled={disabled}
-      />
-      <button
-        type="button"
-        onClick={onAdd}
-        disabled={disabled}
-        className="btn-secondary !py-0 !px-4 flex items-center gap-1 disabled:opacity-50"
-      >
-        <ImagePlus size={18} />
-      </button>
     </div>
   );
 }

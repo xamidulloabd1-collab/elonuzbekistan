@@ -110,20 +110,16 @@ Lokal PostgreSQL o'rnating yoki [Neon](https://neon.tech) /
 [Supabase](https://supabase.com) kabi bepul bulutli xizmatdan bir daqiqada
 baza oching.
 
-### 2) Cloudinary tayyorlash (e'lon rasmlari uchun)
+### 2) Rasm saqlash (avtomatik, sozlash shart emas)
 
 E'lon qo'shishda foydalanuvchi telefon/kompyuter **galereyasidan** rasm
-tanlab yuklaydi (endi shunday ishlaydi) — bu rasmlar [Cloudinary](https://cloudinary.com)
-degan bepul bulutli xizmatda saqlanadi (serverning o'zida saqlash imkonsiz,
-chunki Netlify/Vercel kabi muhitlar doimiy fayl saqlashni qo'llab-quvvatlamaydi).
+tanlab yuklaydi. Bu rasmlar **Netlify Blobs**da (Netlify'ning o'z fayl
+saqlash xizmati) saqlanadi — Netlify'ga joylashtirilganda **avtomatik
+ishlaydi**, alohida hisob ochish yoki maxfiy kalit kiritish shart emas.
 
-1. [cloudinary.com](https://cloudinary.com)da bepul ro'yxatdan o'ting.
-2. Bosh sahifada (Dashboard) **"Cloud name"**ni ko'ring va nusxalab oling.
-3. **Settings > Upload > Upload presets > Add upload preset**ga o'ting.
-4. **"Signing Mode"** qatorida **"Unsigned"** ni tanlang (bu brauzerdan
-   to'g'ridan-to'g'ri, maxfiy kalitsiz yuklashga ruxsat beradi — xavfsiz,
-   chunki faqat rasm yuklashga ruxsat beradi, boshqa hech narsaga emas).
-5. Preset nomini eslab qoling (yoki o'zingiz nom bering) va saqlang.
+> Eslatma: avval Cloudinary xizmati ko'zda tutilgan edi, lekin u
+> O'zbekistondan ro'yxatdan o'tishni bloklaydi ("geo_location_not_permitted"),
+> shuning uchun Netlify'ning o'z xizmatiga o'tkazildi.
 
 ### 3) Sozlash
 
@@ -137,7 +133,6 @@ cp .env.example .env
 - `DATABASE_URL` — haqiqiy PostgreSQL manzilingiz
 - `JWT_SECRET` — uzun, tasodifiy maxfiy matn
 - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` — tarif arizalari uchun (ixtiyoriy, lekin tavsiya etiladi)
-- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — 2-qadamda olganlaringiz
 
 ### 4) Bazani yaratish
 
