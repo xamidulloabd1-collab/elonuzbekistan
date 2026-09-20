@@ -1,5 +1,6 @@
 // components/Footer.jsx - Sahifa pastki qismi (Navbar bilan uyg'un, doim qorong'i)
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -7,6 +8,9 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 flex flex-col items-center gap-4">
         <Image src="/logo-mark.png" alt="Elon" width={110} height={79} className="h-9 w-auto opacity-90" />
         <p className="text-gray-500 text-xs tracking-wide">BUY · SELL · ONLINE</p>
+        <Link href="/maxfiylik-siyosati" className="text-gray-500 hover:text-brand-400 text-xs">
+          Maxfiylik siyosati
+        </Link>
         <p className="text-gray-600 text-xs">
           © {new Date().getFullYear()} Elon — Buyumlaringiz uchun eng yaxshi joy
         </p>
