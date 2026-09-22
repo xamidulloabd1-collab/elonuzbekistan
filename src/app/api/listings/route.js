@@ -80,9 +80,13 @@ export async function POST(request) {
       return NextResponse.json({ message: "Ma'lumotlarni to'g'ri kiriting", errors }, { status: 400 });
     }
 
-    // "Biznes/Makler" tarifi cheklovsiz VIP beradi; "Tadbirkor" uchun oyiga
-    // 3 tagacha VIP kvotasi bor (tryConsumeVipSlot kvotani o'zi hisoblaydi)
-    const isVip = await tryConsumeVipSlot(user);
+    // Foydalanuvchi (agar faol tarifi bo'lsa) e'lonni VIP qilib joylashni
+    // xohlaydimi-yo'qmi, shuni frontend'dan keladigan "wantVip" orqali biladi.
+    // Agar xohlamasa - hech qanday kvota sarflanmaydi (keyingi e'lon uchun saqlanib qoladi).
+    // Agar xohlasa - tryConsumeVipSlot o'zi tarif turi va kvotani tekshiradi
+    // (Biznes - cheklovsiz, Tadbirkor - oyiga 3 tagacha, tarifsiz - har doim false).
+    const wantVip = Boolean(body.wantVip);
+    const isVip = wantVip ? await tryConsumeVipSlot(user) : false;
 
     const listing = await prisma.listing.create({
       data: {

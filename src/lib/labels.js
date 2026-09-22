@@ -3,6 +3,7 @@
 export const CATEGORY_LABELS = {
   KOCHMAS_MULK: "🏠 Ko'chmas mulk",
   TRANSPORT: "🚗 Transport",
+  AVTO_EHTIYOT_QISMLAR: "🔧 Avto ehtiyot qismlar",
   ELEKTRONIKA: "💻 Elektronika",
   ISH_ORINLARI: "💼 Ish o'rinlari",
   XIZMATLAR: "🛠️ Xizmatlar",

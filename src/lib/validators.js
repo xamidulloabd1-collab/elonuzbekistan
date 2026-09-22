@@ -4,7 +4,7 @@
 // Bu shakl frontend'da har bir maydon ostiga alohida xatolik chiqarishni osonlashtiradi.
 
 export const CATEGORIES = [
-  'KOCHMAS_MULK', 'TRANSPORT', 'ELEKTRONIKA', 'ISH_ORINLARI',
+  'KOCHMAS_MULK', 'TRANSPORT', 'AVTO_EHTIYOT_QISMLAR', 'ELEKTRONIKA', 'ISH_ORINLARI',
   'XIZMATLAR', 'UY_JIHOZLARI', 'KIYIM_ODA', 'BOSHQA'
 ];
 

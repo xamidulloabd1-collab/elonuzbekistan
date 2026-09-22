@@ -6,8 +6,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { CATEGORY_LABELS, REGION_LABELS } from '@/lib/labels';
+import { Star } from 'lucide-react';
+import { CATEGORY_LABELS, REGION_LABELS, PLAN_LABELS } from '@/lib/labels';
 import { CURRENCIES } from '@/lib/validators';
+import { useAuth } from '@/context/AuthContext';
 import ImageUploader from './ImageUploader';
 
 const emptyForm = {
@@ -15,11 +17,30 @@ const emptyForm = {
   price: '', currency: 'UZS', contactPhone: '', images: [],
 };
 
+const VIP_QUOTA = { BIZNES: null, TADBIRKOR: 3 }; // null = cheklovsiz
+
 export default function ListingForm({ mode, listingId, initialData }) {
+  const { user } = useAuth();
   const [form, setForm] = useState(initialData || emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+
+  // Foydalanuvchining hozir FAOL (muddati o'tmagan) pullik tarifi bor-yo'qligini
+  // va agar bor bo'lsa, qancha VIP kvotasi qolganini hisoblaymiz - shu asosida
+  // "VIP qilib joylash" tanlovini ko'rsatamiz yoki ko'rsatmaymiz.
+  const isActivePlan =
+    user?.subscriptionStatus === 'ACTIVE' &&
+    user?.subscriptionExpiresAt &&
+    new Date(user.subscriptionExpiresAt) > new Date();
+
+  const plan = user?.subscriptionPlan;
+  const quota = plan ? VIP_QUOTA[plan] : undefined;
+  const remaining = quota === null ? null : quota !== undefined ? Math.max(0, quota - (user?.vipListingsUsed || 0)) : 0;
+  const canOfferVip = mode === 'create' && isActivePlan && (quota === null || remaining > 0);
+
+  // Kvotasi bo'lsa, standart holatda VIP belgilangan bo'lsin (foydalanuvchi xohlasa o'chiradi)
+  const [wantVip, setWantVip] = useState(true);
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,11 +58,12 @@ export default function ListingForm({ mode, listingId, initialData }) {
     try {
       const url = mode === 'edit' ? `/api/listings/${listingId}` : '/api/listings';
       const method = mode === 'edit' ? 'PUT' : 'POST';
+      const payload = canOfferVip ? { ...form, wantVip } : form;
 
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -125,6 +147,38 @@ export default function ListingForm({ mode, listingId, initialData }) {
         <label className="block font-semibold mb-1">Rasmlar</label>
         <ImageUploader images={form.images} onChange={handleImagesChange} />
       </div>
+
+      {/* VIP/oddiy tanlovi - faqat FAOL pullik tarifi (va yetarli kvotasi) bor
+          foydalanuvchilarga, faqat yangi e'lon qo'shishda ko'rsatiladi */}
+      {canOfferVip && (
+        <label
+          className={`flex items-start gap-3 rounded-xl border-2 p-4 cursor-pointer transition ${
+            wantVip
+              ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-400/10'
+              : 'border-gray-200 dark:border-white/10'
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={wantVip}
+            onChange={(e) => setWantVip(e.target.checked)}
+            className="mt-1 w-5 h-5 accent-yellow-500 shrink-0"
+          />
+          <span>
+            <span className="font-bold flex items-center gap-1.5">
+              <Star size={16} className="text-yellow-500" fill="currentColor" />
+              Bu e'lonni VIP qilib joylash
+            </span>
+            <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              {PLAN_LABELS[plan]} tarifingiz bor —{' '}
+              {quota === null
+                ? "e'loningiz ro'yxat boshida, ⭐ belgi bilan chiqadi (cheklovsiz)."
+                : `shu oy uchun ${remaining} ta VIP joylashtirish huquqingiz qoldi.`}
+              {' '}Xohlamasangiz, belgini olib tashlab, oddiy e'lon sifatida joylashingiz mumkin.
+            </span>
+          </span>
+        </label>
+      )}
 
       <button type="submit" disabled={submitting} className="btn-primary w-full mt-2">
         {submitting ? "Saqlanmoqda..." : mode === 'edit' ? "💾 O'zgarishlarni saqlash" : "✅ E'lonni joylash"}
