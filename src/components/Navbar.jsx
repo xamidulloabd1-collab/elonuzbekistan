@@ -1,8 +1,9 @@
 'use client';
 // components/Navbar.jsx - Yuqori navigatsiya paneli
-// Eslatma: navbar doim qorong'i fonda ishlaydi (tema qanday bo'lishidan qat'iy
-// nazar) - chunki logotipimizdagi oq "ELON" yozuvi faqat qora/to'q fonda aniq
-// ko'rinadi. Bu ko'plab premium texnologik brendlarda qo'llaniladigan uslub.
+// Eslatma: logotip belgisi (icon) o'zi istalgan fonda ishlaydi (shaffof PNG),
+// shuning uchun bevosita navbar fonini o'zgartirmasdan ham yangi logotipni
+// qo'llash mumkin. "E'lonUz" nomi endi kod orqali, navbar foniga mos rangda
+// chiqariladi.
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -29,8 +30,11 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-surface-950/95 backdrop-blur-md border-b border-white/5">
       <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-        <Link href="/" className="flex items-center shrink-0" onClick={() => setMenuOpen(false)}>
-          <Image src="/logo-mark.png" alt="Elon" width={132} height={95} priority className="h-11 w-auto" />
+        <Link href="/" className="flex items-center gap-2 shrink-0" onClick={() => setMenuOpen(false)}>
+          <Image src="/logo-mark.png" alt="" width={40} height={40} priority className="h-9 w-9" />
+          <span className="text-lg font-extrabold text-white">
+            E'lon<span className="text-brand-400">Uz</span>
+          </span>
         </Link>
 
         {/* Desktop navigatsiya */}

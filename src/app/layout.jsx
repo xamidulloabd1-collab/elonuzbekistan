@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata = {
-  title: "Elon — Buyumlaringiz uchun eng yaxshi joy",
+  title: "E'lonUz — Buyumlaringiz uchun eng yaxshi joy",
   description: "Ko'chmas mulk, transport, elektronika va boshqa e'lonlarni bepul joylang va toping. Buy · Sell · Online.",
   icons: {
     icon: '/favicon.png',

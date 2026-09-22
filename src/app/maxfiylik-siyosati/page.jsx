@@ -1,6 +1,6 @@
 // app/maxfiylik-siyosati/page.jsx - Maxfiylik siyosati (Google Play uchun talab qilinadi)
 export const metadata = {
-  title: "Maxfiylik siyosati — Elon",
+  title: "Maxfiylik siyosati — E'lonUz",
 };
 
 export default function PrivacyPolicyPage() {
@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-xl font-bold mb-2">1. Umumiy ma'lumot</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            "Elon" platformasi (bundan buyon — "biz", "platforma") O'zbekiston
+            "E'lonUz" platformasi (bundan buyon — "biz", "platforma") O'zbekiston
             bo'ylab e'lonlar joylash va qidirish xizmatini taqdim etadi. Ushbu
             hujjat foydalanuvchilarimizning shaxsiy ma'lumotlarini qanday
             to'plashimiz, ishlatishimiz va saqlashimizni tushuntiradi.
