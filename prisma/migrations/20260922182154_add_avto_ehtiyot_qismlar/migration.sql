@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "Category" ADD VALUE 'AVTO_EHTIYOT_QISMLAR';
