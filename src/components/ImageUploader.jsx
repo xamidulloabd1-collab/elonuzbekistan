@@ -9,7 +9,7 @@
 import { useState, useRef } from 'react';
 import { X, ImagePlus, Loader2, ImageIcon } from 'lucide-react';
 
-const MAX_IMAGES = 8;
+const MAX_IMAGES = 5;
 const MAX_FILE_SIZE_MB = 5;
 
 export default function ImageUploader({ images, onChange }) {

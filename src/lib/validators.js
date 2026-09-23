@@ -54,7 +54,7 @@ export function validateListing(body) {
   const price = Number(body.price);
   const currency = body.currency || 'UZS';
   const contactPhone = normalizePhone(body.contactPhone);
-  const images = Array.isArray(body.images) ? body.images.filter(Boolean) : [];
+  const images = Array.isArray(body.images) ? body.images.filter(Boolean).slice(0, 5) : [];
 
   if (!title || title.length < 3) errors.title = "Sarlavha kamida 3 belgidan iborat bo'lishi kerak";
   if (!description || description.length < 10) errors.description = "Tavsif kamida 10 belgidan iborat bo'lishi kerak";
