@@ -83,9 +83,14 @@ export default async function DashboardPage() {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Mening e'lonlarim</h2>
-        <Link href="/elon-qoshish" className="btn-primary !py-2 !px-4 !text-sm flex items-center gap-1">
-          <Plus size={16} /> Yangi e'lon
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/kabinet/sevimlilar" className="btn-secondary !py-2 !px-4 !text-sm">
+            ❤️ Sevimlilarim
+          </Link>
+          <Link href="/elon-qoshish" className="btn-primary !py-2 !px-4 !text-sm flex items-center gap-1">
+            <Plus size={16} /> Yangi e'lon
+          </Link>
+        </div>
       </div>
 
       <MyListingsList initialListings={listings} />

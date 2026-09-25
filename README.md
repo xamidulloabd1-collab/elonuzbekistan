@@ -3,22 +3,25 @@
 OLX/Avtoelon uslubidagi, ishga to'liq tayyor e'lonlar platformasi.
 Next.js 14 (App Router) + PostgreSQL + Prisma ORM asosida qurilgan.
 
-## 🆕 Oxirgi yangilanish (muhim — bitta buyruq talab qiladi)
+## 🆕 Oxirgi yangilanish (muhim — ikkita buyruq talab qiladi)
 
-Bu safar bazaga yangi kategoriya (`AVTO_EHTIYOT_QISMLAR`) qo'shildi, shuning
+Bu safar bazaga yangi jadval (`Favorite` — sevimlilar) qo'shildi, shuning
 uchun **avval bazani yangilashingiz kerak**, aks holda sayt xato beradi:
 
 ```bash
 npx prisma generate
-npx prisma migrate dev --name add_avto_ehtiyot_qismlar
+npx prisma migrate dev --name add_favorites
 ```
 
-Bundan tashqari:
-- 🔧 Yangi kategoriya: **"Avto ehtiyot qismlar"**
-- ⭐ Faol tarifi (Tadbirkor/Biznes) bor foydalanuvchi endi e'lon qo'shishda
-  **"VIP qilib joylash"** belgisini o'zi yoqib/o'chirib qo'yishi mumkin —
-  avvalgidek avtomatik emas, endi tanlov unga tegishli (kvotasini o'zi
-  boshqaradi).
+(Agar oldingi "Avto ehtiyot qismlar" migratsiyasini hali qilmagan bo'lsangiz,
+avval o'shani bajaring, keyin shuni.)
+
+Bundan tashqari, 5 ta yangi funksiya qo'shildi:
+- 🗺️ **Xarita orqali qidirish** — `/elonlar` sahifasida O'zbekiston viloyatlari xaritasi orqali vizual qidirish
+- 🛡️ **Admin: e'lonlarni boshqarish** — `/admin` sahifasida istalgan e'lonni yashirish/qayta ko'rsatish yoki o'chirish
+- ❤️ **Sevimlilar** — e'lonlarni saqlab, kabinetdagi "Sevimlilarim" sahifasida ko'rish
+- 🔁 **O'xshash e'lonlar** — e'lon sahifasida bir xil kategoriyadagi boshqa e'lonlar
+- 📤 **Ulashish tugmasi** — Telegram/WhatsApp'ga yoki havola sifatida nusxalash
 
 ## 🧱 Texnik stek
 

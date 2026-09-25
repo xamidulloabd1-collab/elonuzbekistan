@@ -2,6 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import ListingCard from '@/components/ListingCard';
 import FilterBar from '@/components/FilterBar';
+import RegionMap from '@/components/RegionMap';
 import SearchBar from '@/components/SearchBar';
 import Pagination from '@/components/Pagination';
 import { CATEGORY_LABELS } from '@/lib/labels';
@@ -67,6 +68,7 @@ export default async function ListingsPage({ searchParams }) {
       <p className="text-gray-400 text-sm mb-4">{total} ta e'lon topildi</p>
 
       <FilterBar />
+      <RegionMap currentRegion={searchParams.region} />
 
       {listings.length === 0 ? (
         <p className="text-gray-400 py-16 text-center">Hech qanday e'lon topilmadi. Filtrlarni o'zgartirib ko'ring.</p>

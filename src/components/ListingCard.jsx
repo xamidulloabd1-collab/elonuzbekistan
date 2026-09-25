@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { ImageOff, MapPin, Eye, Star } from 'lucide-react';
 import { CATEGORY_LABELS, REGION_LABELS, formatPrice } from '@/lib/labels';
+import FavoriteButton from './FavoriteButton';
 
 export default function ListingCard({ listing }) {
   const image = listing.images?.[0];
@@ -16,6 +17,7 @@ export default function ListingCard({ listing }) {
           <Star size={12} fill="currentColor" /> VIP
         </span>
       )}
+      <FavoriteButton listingId={listing.id} size={16} className="absolute top-2 right-2 z-10" />
       <div className="aspect-[4/3] bg-gray-100 dark:bg-surface-800 flex items-center justify-center overflow-hidden">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
