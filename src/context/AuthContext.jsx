@@ -37,6 +37,9 @@ export function AuthProvider({ children }) {
 
   function login(userData) {
     setUser(userData);
+    // Login/register javobida faqat asosiy maydonlar bor - tarif, referal kodi,
+    // bonus VIP kreditlar kabi to'liq ma'lumotni /api/auth/me orqali olamiz
+    refreshUser();
   }
 
   async function logout() {

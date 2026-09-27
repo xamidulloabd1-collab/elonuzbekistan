@@ -42,9 +42,10 @@ export default function ConversationThreadPage() {
     return () => clearInterval(interval);
   }, [load]);
 
+  // Faqat yangi xabar kelganda pastga aylantiramiz (har 4s yangilanishda emas)
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages.length]);
 
   async function handleSend(e) {
     e.preventDefault();

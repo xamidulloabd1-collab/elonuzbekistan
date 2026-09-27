@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import MyListingsList from '@/components/MyListingsList';
+import ReferralCard from '@/components/ReferralCard';
 import { PLAN_LABELS } from '@/lib/labels';
 
 export const dynamic = 'force-dynamic';
@@ -81,9 +82,20 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
+      <div className="flex justify-end mb-4">
+        <Link href="/kabinet/sozlamalar" className="text-sm text-gray-500 dark:text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 font-semibold">
+          ⚙️ Profil sozlamalari
+        </Link>
+      </div>
+
+      <ReferralCard />
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Mening e'lonlarim</h2>
         <div className="flex items-center gap-2">
+          <Link href="/kabinet/xabarlar" className="btn-secondary !py-2 !px-4 !text-sm">
+            💬 Xabarlar
+          </Link>
           <Link href="/kabinet/sevimlilar" className="btn-secondary !py-2 !px-4 !text-sm">
             ❤️ Sevimlilarim
           </Link>

@@ -24,14 +24,33 @@ export async function POST(request) {
 
     const passwordHash = await hashPassword(data.password);
 
+    // Referal kodi orqali kim tomonidan taklif qilinganini tekshiramiz
+    // (body.ref - masalan elonuz.com/royxatdan-otish?ref=XXXXX orqali keladi)
+    let referrer = null;
+    const ref = typeof body.ref === 'string' ? body.ref.trim() : '';
+    if (ref && ref.length <= 64) {
+      referrer = await prisma.user.findUnique({ where: { referralCode: ref }, select: { id: true } });
+    }
+
     const user = await prisma.user.create({
       data: {
         name: data.name,
         phone: data.phone,
         passwordHash,
+        referredById: referrer?.id,
+        // Taklif qilingan foydalanuvchi ham darhol 1 ta bepul VIP kredit oladi
+        bonusVipCredits: referrer ? 1 : 0,
       },
       select: { id: true, name: true, phone: true, role: true },
     });
+
+    // Taklif qilgan foydalanuvchiga ham 1 ta bepul VIP kredit beramiz
+    if (referrer) {
+      await prisma.user.update({
+        where: { id: referrer.id },
+        data: { bonusVipCredits: { increment: 1 } },
+      }).catch((err) => console.error('Referal bonusini berishda xatolik:', err));
+    }
 
     const token = signToken(user);
     setAuthCookie(token);

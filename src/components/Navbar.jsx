@@ -8,8 +8,9 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, LayoutDashboard, LogOut, Tag, ShieldCheck, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, LayoutDashboard, LogOut, Tag, ShieldCheck, Menu, X, MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from './ThemeToggle';
 import toast from 'react-hot-toast';
@@ -18,6 +19,34 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+  const pathname = usePathname();
+
+  // O'qilmagan xabarlar sonini har 30 soniyada (va sahifa almashganda) yangilaymiz
+  useEffect(() => {
+    if (!user) {
+      setUnread(0);
+      return;
+    }
+    let cancelled = false;
+    const load = () =>
+      fetch('/api/messages/unread-count')
+        .then((r) => r.json())
+        .then((d) => !cancelled && setUnread(d.count || 0))
+        .catch(() => {});
+    load();
+    const t = setInterval(load, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [user, pathname]);
+
+  const badge = unread > 0 && (
+    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center">
+      {unread > 99 ? '99+' : unread}
+    </span>
+  );
 
   async function handleLogout() {
     setMenuOpen(false);
@@ -51,6 +80,10 @@ export default function Navbar() {
                   <ShieldCheck size={16} /> Admin
                 </Link>
               )}
+              <Link href="/kabinet/xabarlar" className="relative text-gray-300 hover:text-brand-400 border border-white/10 hover:border-brand-400/50 rounded-xl p-2 transition" aria-label="Xabarlar">
+                <MessageCircle size={18} />
+                {badge}
+              </Link>
               <Link href="/kabinet" className="text-sm font-semibold text-gray-300 hover:text-brand-400 border border-white/10 hover:border-brand-400/50 rounded-xl py-2 px-3 flex items-center gap-1.5 transition">
                 <LayoutDashboard size={16} /> Kabinet
               </Link>
@@ -77,6 +110,12 @@ export default function Navbar() {
 
         {/* Mobil: tema tugmasi + gamburger menyu */}
         <div className="flex md:hidden items-center gap-1">
+          {user && (
+            <Link href="/kabinet/xabarlar" onClick={() => setMenuOpen(false)} className="relative text-gray-300 p-2" aria-label="Xabarlar">
+              <MessageCircle size={20} />
+              {badge}
+            </Link>
+          )}
           <ThemeToggle dark />
           <button
             onClick={() => setMenuOpen((v) => !v)}
@@ -95,7 +134,12 @@ export default function Navbar() {
           <Link href="/elonlar" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">📋 Barcha e'lonlar</Link>
           <Link href="/tariflar" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">💼 Tariflar</Link>
           {user && (
-            <Link href="/kabinet" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">👤 Kabinet</Link>
+            <>
+              <Link href="/kabinet" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">👤 Kabinet</Link>
+              <Link href="/kabinet/xabarlar" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">
+                💬 Xabarlar{unread > 0 && <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{unread}</span>}
+              </Link>
+            </>
           )}
           {user?.role === 'ADMIN' && (
             <Link href="/admin" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">🛡️ Admin panel</Link>

@@ -5,6 +5,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 async function getConversationForUser(conversationId, userId) {
   const conversation = await prisma.conversation.findUnique({
     where: { id: conversationId },
@@ -68,23 +70,26 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Suhbat topilmadi' }, { status: 404 });
     }
 
-    const { content } = await request.json();
-    if (!content || !content.trim()) {
+    const body = await request.json().catch(() => ({}));
+    const content = typeof body.content === 'string' ? body.content : '';
+    if (!content.trim()) {
       return NextResponse.json({ message: "Xabar matni bo'sh bo'lishi mumkin emas" }, { status: 400 });
     }
     if (content.length > 2000) {
       return NextResponse.json({ message: "Xabar juda uzun (2000 belgidan oshmasin)" }, { status: 400 });
     }
 
-    const message = await prisma.message.create({
-      data: { conversationId: conversation.id, senderId: user.id, content: content.trim() },
-    });
-
-    // Suhbatning "updatedAt"ini yangilaymiz - shunda ro'yxatda eng yuqorida chiqadi
-    await prisma.conversation.update({
-      where: { id: conversation.id },
-      data: { updatedAt: new Date() },
-    });
+    // Xabarni saqlash va suhbatning "updatedAt"ini yangilash (ro'yxatda eng
+    // yuqorida chiqishi uchun) - bitta tranzaksiyada
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: { conversationId: conversation.id, senderId: user.id, content: content.trim() },
+      }),
+      prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { updatedAt: new Date() },
+      }),
+    ]);
 
     return NextResponse.json({ message: message }, { status: 201 });
   } catch (err) {

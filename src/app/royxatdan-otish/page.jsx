@@ -1,18 +1,28 @@
 'use client';
 // app/royxatdan-otish/page.jsx - Ro'yxatdan o'tish sahifasi
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const [form, setForm] = useState({ name: '', phone: '', password: '' });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get('ref'); // Referal havolasi orqali kelgan bo'lsa
 
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -27,7 +37,7 @@ export default function RegisterPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ref }),
       });
       const data = await res.json();
 
@@ -38,7 +48,7 @@ export default function RegisterPage() {
       }
 
       login(data.user);
-      toast.success("Ro'yxatdan muvaffaqiyatli o'tdingiz!");
+      toast.success(ref ? "Xush kelibsiz! Sizga 1 ta bepul VIP kredit berildi 🎁" : "Ro'yxatdan muvaffaqiyatli o'tdingiz!");
       router.push('/');
       router.refresh(); // joriy va keshlangan sahifalar yangi foydalanuvchi bilan qayta yuklansin
     } catch (err) {
@@ -52,6 +62,12 @@ export default function RegisterPage() {
   return (
     <div className="max-w-md mx-auto px-4 py-12">
       <h1 className="text-2xl font-bold text-center mb-6">Ro'yxatdan o'tish</h1>
+
+      {ref && (
+        <div className="bg-brand-50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-400/20 rounded-xl p-3 mb-4 text-sm text-brand-700 dark:text-brand-400 text-center">
+          🎁 Do'stingiz taklifi bilan kelyapsiz — ro'yxatdan o'tsangiz, 1 ta bepul VIP kredit olasiz!
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="card p-6 flex flex-col gap-4">
         <div>

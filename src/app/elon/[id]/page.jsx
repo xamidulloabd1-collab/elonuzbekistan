@@ -8,6 +8,7 @@ import ImageGallery from '@/components/ImageGallery';
 import ContactActions from '@/components/ContactActions';
 import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
+import MessageButton from '@/components/MessageButton';
 import ListingCard from '@/components/ListingCard';
 
 export const dynamic = 'force-dynamic';
@@ -113,7 +114,9 @@ export default async function ListingDetailPage({ params }) {
                 <UserIcon className="text-brand-600 dark:text-brand-400" size={22} />
               </div>
               <div>
-                <p className="font-bold">{listing.owner.name}</p>
+                <Link href={`/sotuvchi/${listing.ownerId}`} className="font-bold hover:text-brand-600 dark:hover:text-brand-400 transition">
+                  {listing.owner.name}
+                </Link>
                 <p className="text-xs text-gray-400">
                   {formatDate(listing.owner.createdAt)}dan beri a'zo
                 </p>
@@ -124,6 +127,7 @@ export default async function ListingDetailPage({ params }) {
               phone={listing.contactPhone}
               telegramUsername={listing.owner.telegramUsername}
             />
+            <MessageButton receiverId={listing.ownerId} listingId={listing.id} />
           </div>
         </div>
       </div>

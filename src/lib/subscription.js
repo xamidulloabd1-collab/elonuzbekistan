@@ -51,30 +51,47 @@ export const VIP_QUOTA = {
 
 /**
  * Foydalanuvchi hozir yangi e'lonni VIP qilib joylay oladimi-yo'qmi, shuni
- * aniqlaydi. Agar ha bo'lsa, kerak bo'lsa (Tadbirkor uchun) kvota
- * hisoblagichini +1 oshiradi va bazaga yozadi.
+ * aniqlaydi. Ikki yo'l bilan VIP bo'lishi mumkin:
+ * 1) Faol tarif orqali (Biznes - cheklovsiz, Tadbirkor - oyiga 3 tagacha)
+ * 2) Referal orqali tekkan bonus VIP kredit (tarifdan mustaqil)
  *
  * Qaytaradi: true (VIP bo'ladi) yoki false (VIP bo'lmaydi).
  */
 export async function tryConsumeVipSlot(user) {
-  if (!hasActivePlan(user)) return false;
+  if (!user) return false;
 
-  const quota = VIP_QUOTA[user.subscriptionPlan];
+  // Eslatma: kvota/kreditni "tekshirib, keyin kamaytirish" o'rniga shartli
+  // updateMany ishlatamiz - shunda bir vaqtda yuborilgan ikki so'rov bitta
+  // qolgan kreditni ikki marta sarflay olmaydi (count=0 bo'lsa - sarflanmadi).
 
-  // Cheklovsiz tarif (Biznes/Makler) - har doim VIP
-  if (quota === null || quota === undefined) return true;
+  // 1) Avval faol tarif kvotasini tekshiramiz
+  if (hasActivePlan(user)) {
+    const quota = VIP_QUOTA[user.subscriptionPlan];
 
-  // Cheklangan tarif (Tadbirkor) - kvota tekshiriladi
-  if (user.vipListingsUsed >= quota) return false;
+    if (quota === null || quota === undefined) return true; // Cheklovsiz (Biznes)
 
+    try {
+      const { count } = await prisma.user.updateMany({
+        where: { id: user.id, vipListingsUsed: { lt: quota } },
+        data: { vipListingsUsed: { increment: 1 } },
+      });
+      if (count > 0) return true;
+    } catch (err) {
+      console.error('VIP kvotasini yangilashda xatolik:', err.message);
+      return false;
+    }
+    // Tarif kvotasi tugagan bo'lsa, pastga tushib bonus kreditni tekshiramiz
+  }
+
+  // 2) Referal orqali tekkan bepul VIP kredit
   try {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { vipListingsUsed: { increment: 1 } },
+    const { count } = await prisma.user.updateMany({
+      where: { id: user.id, bonusVipCredits: { gt: 0 } },
+      data: { bonusVipCredits: { decrement: 1 } },
     });
-    return true;
+    return count > 0;
   } catch (err) {
-    console.error('VIP kvotasini yangilashda xatolik:', err.message);
-    return false; // xato bo'lsa, xavfsiz tomonga - VIP bermaymiz
+    console.error('Bonus VIP kreditni sarflashda xatolik:', err.message);
+    return false;
   }
 }

@@ -6,8 +6,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Migratsiyalar uchun to'g'ridan-to'g'ri ulanish (Neon pooler advisory lock'ni
+  // qo'llab-quvvatlamaydi). Host nomidan "-pooler" olib tashlangan manzil.
+  directUrl = env("DIRECT_URL")
 }
 
 // ------------------------------------------------------------------
@@ -98,8 +101,24 @@ model User {
   // faqat Tadbirkor uchun ma'noga ega. Har safar admin obunani tasdiqlaganda 0'ga tushadi.
   vipListingsUsed        Int      @default(0)
 
+  // --- Do'stni taklif qilish (referal) tizimi ---
+  // Har bir foydalanuvchining o'ziga xos, o'zgarmas referal kodi (havola uchun)
+  referralCode     String   @unique @default(cuid())
+  // Kim uni taklif qilgan (agar bo'lsa) - o'z-o'ziga bog'langan (self-relation)
+  referredBy       User?    @relation("Referrals", fields: [referredById], references: [id])
+  referredById     String?
+  referrals        User[]   @relation("Referrals")
+  // Referal orqali (o'zi taklif qilgan yoki taklif qilingani uchun) tekkan
+  // bepul VIP kredit - tarifdan mustaqil, istalgan e'londa ishlatiladi
+  bonusVipCredits  Int      @default(0)
+
   listings     Listing[]
   favorites    Favorite[]
+
+  // --- Ichki xabar almashish (chat) ---
+  conversationsAsA Conversation[] @relation("ConversationsAsA")
+  conversationsAsB Conversation[] @relation("ConversationsAsB")
+  sentMessages     Message[]
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -130,6 +149,7 @@ model Listing {
   owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId     String
   favoritedBy Favorite[]
+  conversations Conversation[]
 
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -157,4 +177,48 @@ model Favorite {
   // Bitta foydalanuvchi bitta e'lonni faqat bir marta sevimlilarga qo'sha oladi
   @@unique([userId, listingId])
   @@map("favorites")
+}
+
+// Ichki xabar almashish (chat) - ikki foydalanuvchi orasidagi suhbat,
+// ixtiyoriy ravishda bitta e'longa bog'langan bo'lishi mumkin.
+// Ikkalanchi tomonlama takror suhbat yaratilmasligi uchun participantA/B
+// har doim ID bo'yicha kichigi = A, kattasi = B tartibida saqlanadi (ilova
+// darajasida ta'minlanadi).
+model Conversation {
+  id          String   @id @default(cuid())
+
+  listing     Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  listingId   String?
+
+  participantA   User  @relation("ConversationsAsA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantAId String
+  participantB   User  @relation("ConversationsAsB", fields: [participantBId], references: [id], onDelete: Cascade)
+  participantBId String
+
+  messages    Message[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([participantAId, participantBId, listingId])
+  @@index([participantAId])
+  @@index([participantBId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+
+  content        String
+  read           Boolean      @default(false)
+
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@map("messages")
 }

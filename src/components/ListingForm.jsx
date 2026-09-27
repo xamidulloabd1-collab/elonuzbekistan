@@ -20,7 +20,7 @@ const emptyForm = {
 const VIP_QUOTA = { BIZNES: null, TADBIRKOR: 3 }; // null = cheklovsiz
 
 export default function ListingForm({ mode, listingId, initialData }) {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [form, setForm] = useState(initialData || emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -36,8 +36,13 @@ export default function ListingForm({ mode, listingId, initialData }) {
 
   const plan = user?.subscriptionPlan;
   const quota = plan ? VIP_QUOTA[plan] : undefined;
-  const remaining = quota === null ? null : quota !== undefined ? Math.max(0, quota - (user?.vipListingsUsed || 0)) : 0;
-  const canOfferVip = mode === 'create' && isActivePlan && (quota === null || remaining > 0);
+  const planRemaining = quota === null ? null : quota !== undefined ? Math.max(0, quota - (user?.vipListingsUsed || 0)) : 0;
+  const hasPlanQuota = isActivePlan && (quota === null || planRemaining > 0);
+
+  // Referal orqali tekkan bepul VIP kredit - faol tarifsiz ham VIP berish imkonini beradi
+  const bonusCredits = user?.bonusVipCredits || 0;
+
+  const canOfferVip = mode === 'create' && (hasPlanQuota || bonusCredits > 0);
 
   // Kvotasi bo'lsa, standart holatda VIP belgilangan bo'lsin (foydalanuvchi xohlasa o'chiradi)
   const [wantVip, setWantVip] = useState(true);
@@ -74,6 +79,7 @@ export default function ListingForm({ mode, listingId, initialData }) {
       }
 
       toast.success(mode === 'edit' ? "E'lon yangilandi" : "E'lon muvaffaqiyatli joylandi");
+      if (mode === 'create') refreshUser(); // qolgan VIP kvota/bonus kredit yangilansin
       router.push(`/elon/${data.listing.id}`);
       router.refresh();
     } catch (err) {
@@ -148,7 +154,7 @@ export default function ListingForm({ mode, listingId, initialData }) {
         <ImageUploader images={form.images} onChange={handleImagesChange} />
       </div>
 
-      {/* VIP/oddiy tanlovi - faqat FAOL pullik tarifi (va yetarli kvotasi) bor
+      {/* VIP/oddiy tanlovi - faqat FAOL pullik tarifi yoki bonus VIP krediti bor
           foydalanuvchilarga, faqat yangi e'lon qo'shishda ko'rsatiladi */}
       {canOfferVip && (
         <label
@@ -170,10 +176,16 @@ export default function ListingForm({ mode, listingId, initialData }) {
               Bu e'lonni VIP qilib joylash
             </span>
             <span className="block text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              {PLAN_LABELS[plan]} tarifingiz bor —{' '}
-              {quota === null
-                ? "e'loningiz ro'yxat boshida, ⭐ belgi bilan chiqadi (cheklovsiz)."
-                : `shu oy uchun ${remaining} ta VIP joylashtirish huquqingiz qoldi.`}
+              {hasPlanQuota ? (
+                <>
+                  {PLAN_LABELS[plan]} tarifingiz bor —{' '}
+                  {quota === null
+                    ? "e'loningiz ro'yxat boshida, ⭐ belgi bilan chiqadi (cheklovsiz)."
+                    : `shu oy uchun ${planRemaining} ta VIP joylashtirish huquqingiz qoldi.`}
+                </>
+              ) : (
+                <>🎁 Sizda {bonusCredits} ta referal orqali tekkan bepul VIP kredit bor.</>
+              )}
               {' '}Xohlamasangiz, belgini olib tashlab, oddiy e'lon sifatida joylashingiz mumkin.
             </span>
           </span>

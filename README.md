@@ -3,25 +3,29 @@
 OLX/Avtoelon uslubidagi, ishga to'liq tayyor e'lonlar platformasi.
 Next.js 14 (App Router) + PostgreSQL + Prisma ORM asosida qurilgan.
 
-## 🆕 Oxirgi yangilanish (muhim — ikkita buyruq talab qiladi)
+## 🆕 Oxirgi yangilanish — sotuvchi profili, referal, chat
 
-Bu safar bazaga yangi jadval (`Favorite` — sevimlilar) qo'shildi, shuning
-uchun **avval bazani yangilashingiz kerak**, aks holda sayt xato beradi:
+Bazaga yangi jadvallar (`conversations`, `messages`) va `users` jadvaliga
+referal maydonlari qo'shildi. Migratsiya fayli tayyor
+(`prisma/migrations/20260927120000_add_referral_and_chat`), mavjud
+foydalanuvchilarga referal kod avtomatik beriladi.
+
+1. `.env`ga `DIRECT_URL` qo'shing (Neon: `DATABASE_URL` bilan bir xil, faqat
+   host nomidan `-pooler` olib tashlanadi). Netlify'ga ham qo'shing.
+2. Buyruqlar:
 
 ```bash
 npx prisma generate
-npx prisma migrate dev --name add_favorites
+npx prisma migrate deploy
 ```
 
-(Agar oldingi "Avto ehtiyot qismlar" migratsiyasini hali qilmagan bo'lsangiz,
-avval o'shani bajaring, keyin shuni.)
-
-Bundan tashqari, 5 ta yangi funksiya qo'shildi:
-- 🗺️ **Xarita orqali qidirish** — `/elonlar` sahifasida O'zbekiston viloyatlari xaritasi orqali vizual qidirish
-- 🛡️ **Admin: e'lonlarni boshqarish** — `/admin` sahifasida istalgan e'lonni yashirish/qayta ko'rsatish yoki o'chirish
-- ❤️ **Sevimlilar** — e'lonlarni saqlab, kabinetdagi "Sevimlilarim" sahifasida ko'rish
-- 🔁 **O'xshash e'lonlar** — e'lon sahifasida bir xil kategoriyadagi boshqa e'lonlar
-- 📤 **Ulashish tugmasi** — Telegram/WhatsApp'ga yoki havola sifatida nusxalash
+Yangi funksiyalar:
+- 👤 **Ochiq sotuvchi profili** — `/sotuvchi/[id]`, e'lon sahifasidagi sotuvchi ismi shu sahifaga havola
+- 🎁 **Do'stni taklif qilish (referal)** — kabinetda shaxsiy havola; havola orqali
+  ro'yxatdan o'tgan har bir do'st uchun ikkalasi ham 1 tadan bepul VIP kredit oladi
+- 💬 **Ichki chat** — e'lon sahifasida "Xabar yozish", `/kabinet/xabarlar`,
+  navbar'da o'qilmagan xabarlar belgisi
+- ⚙️ **Profil sozlamalari** — `/kabinet/sozlamalar`: ism, Telegram username, parolni o'zgartirish
 
 ## 🧱 Texnik stek
 
