@@ -3,6 +3,7 @@ import './globals.css';
 import Providers from './providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import VisitTracker from '@/components/VisitTracker';
 
 export const metadata = {
   title: "E'lonUz — Buyumlaringiz uchun eng yaxshi joy",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
     <html lang="uz" suppressHydrationWarning>
       <body>
         <Providers>
+          <VisitTracker />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>

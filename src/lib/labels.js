@@ -44,6 +44,12 @@ export const PLAN_PRICES = {
   BIZNES: "24 990 so'm/oy",
 };
 
+// Tariflarning oylik narxi (so'mda) - statistikadagi taxminiy daromad uchun
+export const PLAN_PRICE_UZS = {
+  TADBIRKOR: 14990,
+  BIZNES: 24990,
+};
+
 export function formatPrice(price, currency = 'UZS') {
   const num = Number(price);
   const formatted = num.toLocaleString('uz-UZ');

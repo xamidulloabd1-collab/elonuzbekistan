@@ -247,3 +247,15 @@ model PhoneOtp {
   @@index([ip, createdAt])
   @@map("phone_otps")
 }
+
+// Sayt tashriflari (statistika uchun). Har bir kunda har bir tashrifchi bitta
+// qator: IP manzil saqlanmaydi, faqat kunlik almashadigan anonim xesh.
+model SiteVisit {
+  day         DateTime @db.Date
+  visitorHash String
+  views       Int      @default(1)
+
+  @@id([day, visitorHash])
+  @@index([day])
+  @@map("site_visits")
+}
