@@ -1,0 +1,238 @@
+// prisma/schema.prisma
+// ElonUz — ma'lumotlar bazasi sxemasi (PostgreSQL + Prisma ORM)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------
+// ENUM'LAR
+// ------------------------------------------------------------------
+
+// E'lon kategoriyalari
+enum Category {
+  KOCHMAS_MULK   // Ko'chmas mulk
+  TRANSPORT      // Transport
+  AVTO_EHTIYOT_QISMLAR // Avto ehtiyot qismlar
+  ELEKTRONIKA    // Elektronika
+  ISH_ORINLARI   // Ish o'rinlari
+  XIZMATLAR      // Xizmatlar
+  UY_JIHOZLARI   // Uy jihozlari (mebel va h.k.)
+  KIYIM_ODA      // Kiyim-kechak
+  BOSHQA         // Boshqa
+}
+
+// O'zbekiston viloyatlari va Toshkent shahri
+enum Region {
+  TOSHKENT_SHAHAR
+  ANDIJON
+  BUXORO
+  FARGONA
+  JIZZAX
+  XORAZM
+  NAMANGAN
+  NAVOIY
+  QASHQADARYO
+  QORAQALPOGISTON
+  SAMARQAND
+  SIRDARYO
+  SURXONDARYO
+  TOSHKENT_VILOYATI
+}
+
+// Narx valyutasi
+enum Currency {
+  UZS
+  USD
+}
+
+// Foydalanuvchi roli
+enum Role {
+  USER
+  ADMIN
+}
+
+// Pullik tarif turlari (Boshlang'ich - bepul, alohida enum qiymati emas)
+enum SubscriptionPlan {
+  TADBIRKOR   // 50 000 so'm/oy
+  BIZNES      // 120 000 so'm/oy - Makler
+}
+
+// Obuna holati
+enum SubscriptionStatus {
+  NONE      // hech qanday ariza berilmagan (Boshlang'ich/bepul holat)
+  PENDING   // ariza berilgan, admin tasdig'ini kutmoqda
+  ACTIVE    // admin tasdiqlagan, hozir amal qilmoqda
+  EXPIRED   // muddati tugagan
+}
+
+// E'lon holati (moderatsiya uchun zaxira - hozircha barcha e'lonlar avtomatik faol)
+enum ListingStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+// ------------------------------------------------------------------
+// MODELLAR
+// ------------------------------------------------------------------
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  phone        String     @unique
+  passwordHash String
+  telegramUsername String?
+  role         Role       @default(USER)
+
+  // --- Tarif (obuna) holati ---
+  subscriptionPlan      SubscriptionPlan?
+  subscriptionStatus    SubscriptionStatus @default(NONE)
+  subscriptionExpiresAt DateTime?
+  // "Tadbirkor" tarifi uchun joriy davrda (30 kunlik muddat ichida) ishlatilgan
+  // VIP e'lonlar soni. "Biznes" tarifida cheklov yo'q, shuning uchun bu maydon
+  // faqat Tadbirkor uchun ma'noga ega. Har safar admin obunani tasdiqlaganda 0'ga tushadi.
+  vipListingsUsed        Int      @default(0)
+
+  // --- Do'stni taklif qilish (referal) tizimi ---
+  // Har bir foydalanuvchining o'ziga xos, o'zgarmas referal kodi (havola uchun)
+  referralCode     String   @unique @default(cuid())
+  // Kim uni taklif qilgan (agar bo'lsa) - o'z-o'ziga bog'langan (self-relation)
+  referredBy       User?    @relation("Referrals", fields: [referredById], references: [id])
+  referredById     String?
+  referrals        User[]   @relation("Referrals")
+  // Referal orqali (o'zi taklif qilgan yoki taklif qilingani uchun) tekkan
+  // bepul VIP kredit - tarifdan mustaqil, istalgan e'londa ishlatiladi
+  bonusVipCredits  Int      @default(0)
+
+  listings     Listing[]
+  favorites    Favorite[]
+  resetTokens  PasswordResetToken[]
+
+  // --- Ichki xabar almashish (chat) ---
+  conversationsAsA Conversation[] @relation("ConversationsAsA")
+  conversationsAsB Conversation[] @relation("ConversationsAsB")
+  sentMessages     Message[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("users")
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+
+  title       String
+  description String        @db.Text
+  category    Category
+  region      Region
+
+  price       Decimal       @db.Decimal(14, 2)
+  currency    Currency      @default(UZS)
+
+  contactPhone String
+
+  // Rasm URL'lari - MVP bosqichida oddiy string massiv sifatida saqlanadi
+  images      String[]      @default([])
+
+  status      ListingStatus @default(ACTIVE)
+  views       Int           @default(0)
+  isVip       Boolean       @default(false) // "Biznes" tarifidagi foydalanuvchi joylaganda avtomatik true
+
+  owner       User          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String
+  favoritedBy Favorite[]
+  conversations Conversation[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Qidiruv/filtr so'rovlarida tez-tez ishlatiladigan maydonlarga indeks qo'yamiz
+  @@index([category])
+  @@index([region])
+  @@index([price])
+  @@index([createdAt])
+  @@index([isVip])
+  @@map("listings")
+}
+
+// Foydalanuvchining "sevimli" deb belgilagan e'lonlari
+model Favorite {
+  id        String   @id @default(cuid())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String
+
+  createdAt DateTime @default(now())
+
+  // Bitta foydalanuvchi bitta e'lonni faqat bir marta sevimlilarga qo'sha oladi
+  @@unique([userId, listingId])
+  @@map("favorites")
+}
+
+// Parolni tiklash so'rovlari - admin tomonidan qo'lda tasdiqlanadi (Telegram orqali),
+// chunki saytda email yo'q va SMS xizmati hali ulanmagan.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  token     String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
+// Ichki xabar almashish (chat) - ikki foydalanuvchi orasidagi suhbat,
+// ixtiyoriy ravishda bitta e'longa bog'langan bo'lishi mumkin.
+// Ikkalanchi tomonlama takror suhbat yaratilmasligi uchun participantA/B
+// har doim ID bo'yicha kichigi = A, kattasi = B tartibida saqlanadi (ilova
+// darajasida ta'minlanadi).
+model Conversation {
+  id          String   @id @default(cuid())
+
+  listing     Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  listingId   String?
+
+  participantA   User  @relation("ConversationsAsA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantAId String
+  participantB   User  @relation("ConversationsAsB", fields: [participantBId], references: [id], onDelete: Cascade)
+  participantBId String
+
+  messages    Message[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([participantAId, participantBId, listingId])
+  @@index([participantAId])
+  @@index([participantBId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+
+  content        String
+  read           Boolean      @default(false)
+
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@map("messages")
+}
