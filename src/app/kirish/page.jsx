@@ -55,7 +55,7 @@ export default function LoginPage() {
           <label className="block font-semibold mb-1">Telefon raqam</label>
           <input
             type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-            placeholder="+998901234567" className="input-field"
+            placeholder="+998 90 123 45 67" className="input-field"
           />
           {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
         </div>
@@ -67,6 +67,11 @@ export default function LoginPage() {
             placeholder="Parolingiz" className="input-field"
           />
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          <div className="text-right mt-1">
+            <Link href="/parolni-tiklash" className="text-sm text-brand-600 dark:text-brand-400 font-semibold">
+              Parolni unutdingizmi?
+            </Link>
+          </div>
         </div>
 
         <button type="submit" disabled={submitting} className="btn-primary w-full mt-2">

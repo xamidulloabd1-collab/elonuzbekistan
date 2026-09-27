@@ -1,5 +1,7 @@
 // lib/validators.js - Server tomonida kiritilgan ma'lumotlarni tekshirish
 //
+import { toUzPhone } from './phone';
+
 // Har bir funksiya { valid: boolean, errors: { [maydon]: xabar } } qaytaradi.
 // Bu shakl frontend'da har bir maydon ostiga alohida xatolik chiqarishni osonlashtiradi.
 
@@ -20,15 +22,19 @@ function normalizePhone(phone) {
   return String(phone || '').replace(/[^\d+]/g, '');
 }
 
+export const PHONE_ERROR = "O'zbekiston telefon raqamini kiriting (masalan: +998 90 123 45 67)";
+export const MIN_PASSWORD = 6;
+
 export function validateRegister(body) {
   const errors = {};
   const name = (body.name || '').trim();
-  const phone = normalizePhone(body.phone);
+  const phone = toUzPhone(body.phone); // "998XXXXXXXXX" yoki null
   const password = body.password || '';
 
-  if (!name) errors.name = "Ismingizni kiriting";
-  if (!phone || phone.length < 9) errors.phone = "To'g'ri telefon raqam kiriting";
-  if (!password || password.length < 4) errors.password = "Parol kamida 4 belgidan iborat bo'lishi kerak";
+  if (!name || name.length < 2) errors.name = "Ismingizni kiriting";
+  if (name.length > 60) errors.name = "Ism juda uzun";
+  if (!phone) errors.phone = PHONE_ERROR;
+  if (password.length < MIN_PASSWORD) errors.password = `Parol kamida ${MIN_PASSWORD} belgidan iborat bo'lishi kerak`;
 
   return { valid: Object.keys(errors).length === 0, errors, data: { name, phone, password } };
 }

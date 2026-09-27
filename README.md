@@ -3,6 +3,22 @@
 OLX/Avtoelon uslubidagi, ishga to'liq tayyor e'lonlar platformasi.
 Next.js 14 (App Router) + PostgreSQL + Prisma ORM asosida qurilgan.
 
+## 🆕 Oxirgi yangilanish — telefonni tasdiqlash (Telegram Gateway + ixtiyoriy Eskiz SMS)
+
+- Ro'yxatdan o'tish endi 2 bosqichli: ma'lumotlar → SMS kod
+- "Parolni unutdingizmi?" — `/parolni-tiklash`, SMS kod orqali
+- Sotuvchi profilida "✓ Raqami tasdiqlangan" belgisi
+- Himoya: kod 5 daqiqa amal qiladi, 5 ta noto'g'ri urinish, raqamga 60 soniyada 1 ta / soatiga 5 ta, IP'dan soatiga 10 ta SMS
+
+```bash
+npx prisma generate
+npx prisma migrate deploy
+```
+
+`.env` (va Netlify): `TELEGRAM_GATEWAY_TOKEN` — kod foydalanuvchining Telegram'iga keladi.
+Ixtiyoriy zaxira: `ESKIZ_EMAIL`, `ESKIZ_PASSWORD` — raqamda Telegram bo'lmasa SMS yuboriladi.
+Lokalda hech biri sozlanmasa, kod ekranda ko'rsatiladi (sinov rejimi).
+
 ## 🆕 Oxirgi yangilanish — sotuvchi profili, referal, chat
 
 Bazaga yangi jadvallar (`conversations`, `messages`) va `users` jadvaliga

@@ -11,7 +11,7 @@ async function getSellerData(id) {
   try {
     const seller = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, createdAt: true, subscriptionPlan: true, subscriptionStatus: true },
+      select: { id: true, name: true, createdAt: true, subscriptionPlan: true, subscriptionStatus: true, phoneVerified: true },
     });
     if (!seller) return null;
 
@@ -47,6 +47,11 @@ export default async function SellerProfilePage({ params }) {
         <div>
           <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
             <h1 className="text-2xl font-bold">{seller.name}</h1>
+            {seller.phoneVerified && (
+              <span className="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-xs font-bold px-2.5 py-1 rounded-full">
+                ✓ Raqami tasdiqlangan
+              </span>
+            )}
             {isBusiness && (
               <span className="bg-brand-50 dark:bg-brand-500/10 text-brand-700 dark:text-brand-400 text-xs font-bold px-2.5 py-1 rounded-full">
                 🏢 Biznes hamkor

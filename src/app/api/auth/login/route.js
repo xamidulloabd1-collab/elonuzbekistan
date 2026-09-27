@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword, signToken, setAuthCookie } from '@/lib/auth';
 import { validateLogin } from '@/lib/validators';
+import { findUserByPhone } from '@/lib/userLookup';
 
 export async function POST(request) {
   try {
@@ -13,7 +14,8 @@ export async function POST(request) {
       return NextResponse.json({ message: "Ma'lumotlarni to'g'ri kiriting", errors }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { phone: data.phone } });
+    // "+998 90...", "90..." kabi istalgan ko'rinishda kiritilsa ham topiladi
+    const user = await findUserByPhone(data.phone);
 
     if (!user) {
       return NextResponse.json({ message: "Telefon raqam yoki parol noto'g'ri" }, { status: 401 });

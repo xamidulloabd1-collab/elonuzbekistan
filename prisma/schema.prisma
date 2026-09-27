@@ -74,6 +74,12 @@ enum SubscriptionStatus {
   EXPIRED   // muddati tugagan
 }
 
+// SMS tasdiqlash kodining maqsadi
+enum OtpPurpose {
+  REGISTER         // ro'yxatdan o'tish
+  RESET_PASSWORD   // parolni tiklash
+}
+
 // E'lon holati (moderatsiya uchun zaxira - hozircha barcha e'lonlar avtomatik faol)
 enum ListingStatus {
   ACTIVE
@@ -90,6 +96,8 @@ model User {
   phone        String     @unique
   passwordHash String
   telegramUsername String?
+  // Telefon raqami SMS kod orqali tasdiqlanganmi (yangi foydalanuvchilar - doim true)
+  phoneVerified    Boolean  @default(false)
   role         Role       @default(USER)
 
   // --- Tarif (obuna) holati ---
@@ -221,4 +229,21 @@ model Message {
 
   @@index([conversationId])
   @@map("messages")
+}
+
+// SMS tasdiqlash kodlari - kodning o'zi emas, faqat HMAC-xeshi saqlanadi
+model PhoneOtp {
+  id         String     @id @default(cuid())
+  phone      String
+  purpose    OtpPurpose
+  codeHash   String
+  attempts   Int        @default(0)
+  ip         String?
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([phone, purpose, createdAt])
+  @@index([ip, createdAt])
+  @@map("phone_otps")
 }
