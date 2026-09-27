@@ -40,7 +40,8 @@ export async function POST(request) {
     return NextResponse.json({
       message: 'Kod yuborildi',
       resendIn: result.resendIn,
-      channel: result.channel, // 'telegram' | 'sms' | 'dev'
+      channel: result.channel, // 'telegram' | 'sms' | 'bot' | 'dev'
+      ...(result.botUrl ? { botUrl: result.botUrl } : {}),
       ...(result.devCode ? { devCode: result.devCode } : {}),
     });
   } catch (err) {

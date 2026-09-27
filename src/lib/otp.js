@@ -8,7 +8,8 @@
 
 import crypto from 'crypto';
 import { prisma } from './prisma';
-import { deliverCode, isSmsConfigured } from './sms';
+import { deliverCode } from './sms';
+import { isBotConfigured, getBotVerifyUrl } from './telegramBot';
 
 const CODE_TTL_MS = 5 * 60 * 1000;
 const RESEND_AFTER_S = 60;
@@ -37,10 +38,16 @@ export function getClientIp(request) {
 }
 
 /**
- * Yangi kod yaratib SMS orqali yuboradi.
- * Qaytaradi: { ok: true, resendIn, devCode? } yoki { ok: false, status, message, resendIn? }
+ * Yangi kod yaratib foydalanuvchiga yuboradi.
+ *
+ * deliver - ixtiyoriy: kodni yetkazish funksiyasi (masalan bot chatiga yozish).
+ *           Berilmasa - Telegram Gateway / Eskiz (lib/sms.js) ishlatiladi.
+ * Ular yetkaza olmasa va bot sozlangan bo'lsa - { channel: 'bot', botUrl }
+ * qaytariladi: foydalanuvchi kodni botdan oladi.
+ *
+ * Qaytaradi: { ok: true, resendIn, channel, botUrl?, devCode? } yoki { ok: false, status, message, resendIn? }
  */
-export async function createAndSendOtp({ phone, purpose, ip }) {
+export async function createAndSendOtp({ phone, purpose, ip, deliver }) {
   const now = Date.now();
   const hourAgo = new Date(now - 60 * 60 * 1000);
 
@@ -83,11 +90,17 @@ export async function createAndSendOtp({ phone, purpose, ip }) {
 
   let channel;
   try {
-    ({ channel } = await deliverCode(phone, code, CODE_TTL_MS / 1000));
+    ({ channel } = deliver ? await deliver(code) : await deliverCode(phone, code, CODE_TTL_MS / 1000));
   } catch (err) {
     console.error('Kod yuborishda xatolik:', err.message);
     // Yuborilmagan kodni o'chirib tashlaymiz - "60 soniya kuting" cheklovi bo'lmasin
     await prisma.phoneOtp.delete({ where: { id: record.id } }).catch(() => {});
+
+    // Bepul zaxira: kodni foydalanuvchi botdan oladi (raqamini ulashgach)
+    if (!deliver && isBotConfigured()) {
+      return { ok: true, channel: 'bot', botUrl: getBotVerifyUrl(), resendIn: 0 };
+    }
+
     return {
       ok: false,
       status: 502,
@@ -104,7 +117,7 @@ export async function createAndSendOtp({ phone, purpose, ip }) {
 
   const result = { ok: true, resendIn: RESEND_AFTER_S, channel };
   // Lokal sinov uchun: Eskiz sozlanmagan bo'lsa, kodni javobda ham qaytaramiz
-  if (!isSmsConfigured() && process.env.NODE_ENV !== 'production') result.devCode = code;
+  if (channel === 'dev') result.devCode = code;
   return result;
 }
 

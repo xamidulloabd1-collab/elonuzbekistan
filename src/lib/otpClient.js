@@ -1,7 +1,7 @@
 // lib/otpClient.js - Brauzer tomonidan SMS kod so'rash (umumiy yordamchi)
 import toast from 'react-hot-toast';
 
-/** Qaytaradi: { ok, resendIn, channel, errors } */
+/** Qaytaradi: { ok, resendIn, channel, botUrl, errors } */
 export async function requestOtp(phone, purpose) {
   try {
     const res = await fetch('/api/auth/otp/send', {
@@ -17,12 +17,14 @@ export async function requestOtp(phone, purpose) {
     // Lokal sinov rejimi (Eskiz sozlanmagan) - kodni ekranda ko'rsatamiz
     if (data.devCode) {
       toast(`DEV rejim - kod: ${data.devCode}`, { duration: 15000, icon: '🧪' });
+    } else if (data.channel === 'bot') {
+      toast('Kodni Telegram botimizdan oling 👇', { icon: '🤖', duration: 6000 });
     } else if (data.channel === 'telegram') {
       toast.success('Kod Telegram orqali yuborildi');
     } else {
       toast.success('SMS kod yuborildi');
     }
-    return { ok: true, resendIn: data.resendIn || 60, channel: data.channel };
+    return { ok: true, resendIn: data.channel === 'bot' ? 0 : data.resendIn || 60, channel: data.channel, botUrl: data.botUrl };
   } catch (err) {
     console.error(err);
     toast.error('Tarmoq xatoligi, internetni tekshiring');

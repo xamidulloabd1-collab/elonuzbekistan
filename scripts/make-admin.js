@@ -21,9 +21,14 @@ async function main() {
   }
 
   const phone = String(phoneArg).replace(/[^\d+]/g, '');
+  // Yangi foydalanuvchilar "998XXXXXXXXX" ko'rinishida saqlanadi, eskilari boshqacha
+  // bo'lishi mumkin - barcha ehtimoliy ko'rinishlarda qidiramiz
+  let digits = phone.replace(/\D/g, '');
+  if (digits.length === 9) digits = '998' + digits;
+  const candidates = [...new Set([phone, digits, '+' + digits, digits.slice(3)])];
 
   try {
-    const user = await prisma.user.findUnique({ where: { phone } });
+    const user = await prisma.user.findFirst({ where: { phone: { in: candidates } } });
 
     if (!user) {
       console.error(`❌ "${phone}" raqamli foydalanuvchi topilmadi. Avval shu raqam bilan ro'yxatdan o'tkazing.`);

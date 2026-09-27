@@ -25,6 +25,7 @@ function RegisterForm() {
   const [code, setCode] = useState('');
   const [resendIn, setResendIn] = useState(0);
   const [channel, setChannel] = useState(null);
+  const [botUrl, setBotUrl] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
@@ -52,6 +53,7 @@ function RegisterForm() {
     if (r.ok) {
       setResendIn(r.resendIn);
       setChannel(r.channel);
+      setBotUrl(r.botUrl || null);
       setCode('');
       setStep('code');
     } else {
@@ -153,6 +155,7 @@ function RegisterForm() {
           <SmsCodeField
             phone={form.phone}
             channel={channel}
+            botUrl={botUrl}
             value={code}
             onChange={setCode}
             error={errors.code}

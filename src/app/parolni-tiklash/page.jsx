@@ -19,6 +19,7 @@ export default function ResetPasswordPage() {
   const [confirm, setConfirm] = useState('');
   const [resendIn, setResendIn] = useState(0);
   const [channel, setChannel] = useState(null);
+  const [botUrl, setBotUrl] = useState(null);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const { login } = useAuth();
@@ -37,6 +38,7 @@ export default function ResetPasswordPage() {
     if (r.ok || r.resendIn) {
       setResendIn(r.resendIn || 0);
       if (r.channel) setChannel(r.channel);
+      setBotUrl(r.botUrl || null);
       setCode('');
       setStep('code');
     } else {
@@ -109,6 +111,7 @@ export default function ResetPasswordPage() {
           <SmsCodeField
             phone={phone}
             channel={channel}
+            botUrl={botUrl}
             value={code}
             onChange={setCode}
             error={errors.code}

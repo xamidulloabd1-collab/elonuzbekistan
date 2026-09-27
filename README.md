@@ -17,6 +17,8 @@ npx prisma migrate deploy
 
 `.env` (va Netlify): `TELEGRAM_GATEWAY_TOKEN` — kod foydalanuvchining Telegram'iga keladi.
 Ixtiyoriy zaxira: `ESKIZ_EMAIL`, `ESKIZ_PASSWORD` — raqamda Telegram bo'lmasa SMS yuboriladi.
+Bepul zaxira: `TELEGRAM_WEBHOOK_SECRET` — Gateway kod yubora olmasa (budjet tugasa),
+foydalanuvchi kodni @elonuzz_bot'dan oladi. Bir marta: `node scripts/set-telegram-webhook.js https://elonuz.com`
 Lokalda hech biri sozlanmasa, kod ekranda ko'rsatiladi (sinov rejimi).
 
 ## 🆕 Oxirgi yangilanish — sotuvchi profili, referal, chat

@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 
-export default function SmsCodeField({ phone, channel, value, onChange, error, resendIn, onResend, onChangePhone }) {
+export default function SmsCodeField({ phone, channel, botUrl, value, onChange, error, resendIn, onResend, onChangePhone }) {
   const [seconds, setSeconds] = useState(resendIn || 0);
   const [resending, setResending] = useState(false);
 
@@ -30,7 +30,12 @@ export default function SmsCodeField({ phone, channel, value, onChange, error, r
   return (
     <div>
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-        {channel === 'telegram' ? (
+        {channel === 'bot' ? (
+          <>
+            Kodni olish uchun Telegram botimizni oching va <b className="text-gray-800 dark:text-gray-200">📱 Raqamni ulashish</b>{' '}
+            tugmasini bosing. Botdagi raqam <b className="text-gray-800 dark:text-gray-200">{phone}</b> bilan bir xil bo'lishi kerak.{' '}
+          </>
+        ) : channel === 'telegram' ? (
           <>
             <b className="text-gray-800 dark:text-gray-200">{phone}</b> raqamiga bog'langan{' '}
             <b className="text-gray-800 dark:text-gray-200">Telegram</b>'ga 6 xonali kod yuborildi ("Verification Codes"
@@ -46,6 +51,17 @@ export default function SmsCodeField({ phone, channel, value, onChange, error, r
         </button>
       </p>
 
+      {channel === 'bot' && botUrl && (
+        <a
+          href={botUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full mb-4 py-3 rounded-xl bg-[#229ED9] hover:bg-[#1c8cc1] text-white font-bold transition"
+        >
+          🤖 Telegram botni ochish
+        </a>
+      )}
+
       <label className="block font-semibold mb-1">Tasdiqlash kodi</label>
       <input
         value={value}
@@ -59,7 +75,9 @@ export default function SmsCodeField({ phone, channel, value, onChange, error, r
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
 
       <div className="text-sm mt-2 text-center">
-        {seconds > 0 ? (
+        {channel === 'bot' ? (
+          <span className="text-gray-400">Kod kelmadimi? Botda raqamingizni qayta ulashing.</span>
+        ) : seconds > 0 ? (
           <span className="text-gray-400">Qayta yuborish: {seconds} soniya</span>
         ) : (
           <button
