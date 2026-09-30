@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { isBlockedEitherWay } from '@/lib/blocks';
 
 export async function POST(request) {
   try {
@@ -22,6 +23,10 @@ export async function POST(request) {
     const receiver = await prisma.user.findUnique({ where: { id: receiverId }, select: { id: true } });
     if (!receiver) {
       return NextResponse.json({ message: 'Foydalanuvchi topilmadi' }, { status: 404 });
+    }
+
+    if (await isBlockedEitherWay(user.id, receiverId)) {
+      return NextResponse.json({ message: "Bu foydalanuvchi bilan yozishib bo'lmaydi (bloklangan)" }, { status: 403 });
     }
 
     // E'lon ko'rsatilgan bo'lsa, u haqiqatan shu foydalanuvchiga tegishli bo'lishi kerak

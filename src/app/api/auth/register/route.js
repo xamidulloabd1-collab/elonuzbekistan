@@ -6,6 +6,7 @@ import { hashPassword, signToken, setAuthCookie } from '@/lib/auth';
 import { validateRegister } from '@/lib/validators';
 import { findUserByPhone } from '@/lib/userLookup';
 import { verifyAndConsumeOtp } from '@/lib/otp';
+import { linkTelegramChat } from '@/lib/notify';
 
 export async function POST(request) {
   try {
@@ -71,6 +72,9 @@ export async function POST(request) {
         data: { bonusVipCredits: { increment: 1 } },
       }).catch((err) => console.error('Referal bonusini berishda xatolik:', err));
     }
+
+    // Kod bot orqali olingan bo'lsa - Telegram bildirishnomalarini darhol ulaymiz
+    if (otp.telegramChatId) await linkTelegramChat(user.id, otp.telegramChatId).catch(() => {});
 
     const token = signToken(user);
     setAuthCookie(token);

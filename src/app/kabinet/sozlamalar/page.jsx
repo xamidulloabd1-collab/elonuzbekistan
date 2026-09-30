@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
+import BlockedUsersList from '@/components/BlockedUsersList';
+import DeleteAccountSection from '@/components/DeleteAccountSection';
 
 export default function SettingsPage() {
   const { user, loading, refreshUser } = useAuth();
@@ -135,7 +137,7 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      <form onSubmit={handlePasswordSubmit} className="card p-5 sm:p-6 flex flex-col gap-4">
+      <form onSubmit={handlePasswordSubmit} className="card p-5 sm:p-6 flex flex-col gap-4 mb-6">
         <h2 className="font-bold text-lg">Parolni o'zgartirish</h2>
 
         <div>
@@ -178,6 +180,10 @@ export default function SettingsPage() {
           {savingPwd ? 'Saqlanmoqda...' : "Parolni o'zgartirish"}
         </button>
       </form>
+
+      <BlockedUsersList />
+
+      <DeleteAccountSection />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { validateListing } from '@/lib/validators';
+import { removeChannelPost } from '@/lib/channel';
 
 /**
  * GET /api/listings/:id - E'lon tafsilotlari (har safar ko'rilganda views +1)
@@ -95,6 +96,7 @@ export async function DELETE(request, { params }) {
     }
 
     await prisma.listing.delete({ where: { id: params.id } });
+    await removeChannelPost(existing);
 
     return NextResponse.json({ message: "E'lon o'chirildi" });
   } catch (err) {

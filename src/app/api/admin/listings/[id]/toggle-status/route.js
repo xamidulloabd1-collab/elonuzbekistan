@@ -3,6 +3,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, isAdmin } from '@/lib/auth';
+import { removeChannelPost } from '@/lib/channel';
+import { newExpiry } from '@/lib/listingLifecycle';
 
 export async function POST(request, { params }) {
   try {
@@ -20,10 +22,13 @@ export async function POST(request, { params }) {
     }
 
     const newStatus = listing.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE';
+    const expired = !listing.expiresAt || listing.expiresAt <= new Date();
     const updated = await prisma.listing.update({
       where: { id: params.id },
-      data: { status: newStatus },
+      // Qayta ko'rsatilayotgan e'lonning muddati o'tgan bo'lsa - yangi 30 kun
+      data: newStatus === 'ACTIVE' && expired ? { status: newStatus, expiresAt: newExpiry(), reminderSentAt: null } : { status: newStatus },
     });
+    if (newStatus === 'ARCHIVED') await removeChannelPost(listing);
 
     return NextResponse.json({
       message: newStatus === 'ARCHIVED' ? "E'lon yashirildi" : "E'lon qayta ko'rsatildi",

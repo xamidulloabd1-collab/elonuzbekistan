@@ -117,7 +117,7 @@ export default function AdminListings() {
                     : 'bg-gray-100 dark:bg-surface-800 text-gray-500'
                 }`}
               >
-                {listing.status === 'ACTIVE' ? 'Faol' : 'Yashirilgan'}
+                {{ ACTIVE: 'Faol', ARCHIVED: 'Yashirilgan', SOLD: 'Sotilgan', EXPIRED: 'Muddati tugagan' }[listing.status] || listing.status}
               </span>
               <div className="flex gap-2 shrink-0">
                 <button

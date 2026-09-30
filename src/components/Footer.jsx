@@ -13,9 +13,14 @@ export default function Footer() {
           </span>
         </div>
         <p className="text-gray-500 text-xs tracking-wide">BUY · SELL · ONLINE</p>
-        <Link href="/maxfiylik-siyosati" className="text-gray-500 hover:text-brand-400 text-xs">
-          Maxfiylik siyosati
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/maxfiylik-siyosati" className="text-gray-500 hover:text-brand-400 text-xs">
+            Maxfiylik siyosati
+          </Link>
+          <Link href="/hisobni-ochirish" className="text-gray-500 hover:text-brand-400 text-xs">
+            Hisobni o'chirish
+          </Link>
+        </div>
         <p className="text-gray-600 text-xs">
           © {new Date().getFullYear()} E'lonUz — Buyumlaringiz uchun eng yaxshi joy
         </p>

@@ -82,8 +82,25 @@ enum OtpPurpose {
 
 // E'lon holati (moderatsiya uchun zaxira - hozircha barcha e'lonlar avtomatik faol)
 enum ListingStatus {
-  ACTIVE
-  ARCHIVED
+  ACTIVE     // saytda ko'rinadi
+  ARCHIVED   // admin tomonidan yashirilgan
+  SOLD       // egasi "Sotildi" deb belgilagan
+  EXPIRED    // 30 kunlik muddati tugagan (egasi uzaytirishi mumkin)
+}
+
+// Shikoyat sababi
+enum ReportReason {
+  FRAUD       // firibgarlik
+  WRONG_INFO  // noto'g'ri ma'lumot
+  PROHIBITED  // taqiqlangan tovar/xizmat
+  OFFENSIVE   // haqoratli kontent
+  SPAM        // spam / takroriy e'lon
+  OTHER       // boshqa
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
 }
 
 // ------------------------------------------------------------------
@@ -98,6 +115,9 @@ model User {
   telegramUsername String?
   // Telefon raqami SMS kod orqali tasdiqlanganmi (yangi foydalanuvchilar - doim true)
   phoneVerified    Boolean  @default(false)
+  // Telegram bot orqali bildirishnoma yuborish uchun chat ID (bot'da raqamini
+  // ulashgan yoki kabinetdan "Ulash" tugmasini bosgan foydalanuvchilarda bo'ladi)
+  telegramChatId   String?  @unique
   role         Role       @default(USER)
 
   // --- Tarif (obuna) holati ---
@@ -127,6 +147,12 @@ model User {
   conversationsAsA Conversation[] @relation("ConversationsAsA")
   conversationsAsB Conversation[] @relation("ConversationsAsB")
   sentMessages     Message[]
+
+  // --- Shikoyatlar va bloklash ---
+  reportsMade      Report[]    @relation("ReportsMade")
+  reportsReceived  Report[]    @relation("ReportsReceived")
+  blocksMade       UserBlock[] @relation("BlocksMade")
+  blocksReceived   UserBlock[] @relation("BlocksReceived")
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -158,6 +184,14 @@ model Listing {
   ownerId     String
   favoritedBy Favorite[]
   conversations Conversation[]
+  reports     Report[]
+
+  // E'lon muddati: joylangandan 30 kun o'tib avtomatik EXPIRED bo'ladi
+  expiresAt      DateTime?
+  // Muddat tugashidan oldin egasiga eslatma yuborilgan vaqt
+  reminderSentAt DateTime?
+  // Telegram kanalga joylangan postning ID'si (sotilganda belgilash uchun)
+  channelMessageId Int?
 
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -168,6 +202,7 @@ model Listing {
   @@index([price])
   @@index([createdAt])
   @@index([isVip])
+  @@index([status, expiresAt])
   @@map("listings")
 }
 
@@ -258,4 +293,36 @@ model SiteVisit {
   @@id([day, visitorHash])
   @@index([day])
   @@map("site_visits")
+}
+
+// Foydalanuvchi shikoyatlari (e'lon yoki foydalanuvchi ustidan)
+model Report {
+  id             String       @id @default(cuid())
+  reporter       User         @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  reporterId     String
+  listing        Listing?     @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  listingId      String?
+  reportedUser   User?        @relation("ReportsReceived", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  reportedUserId String?
+  reason         ReportReason
+  details        String?
+  status         ReportStatus @default(OPEN)
+  createdAt      DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
+  @@map("reports")
+}
+
+// Bloklangan foydalanuvchilar: blocker endi blocked bilan yozisha olmaydi (ikki tomonlama)
+model UserBlock {
+  blocker   User     @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockerId String
+  blocked   User     @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
 }

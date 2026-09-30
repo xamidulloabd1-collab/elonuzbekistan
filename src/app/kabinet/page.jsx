@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import MyListingsList from '@/components/MyListingsList';
+import TelegramConnectCard from '@/components/TelegramConnectCard';
 import ReferralCard from '@/components/ReferralCard';
 import { PLAN_LABELS } from '@/lib/labels';
 
@@ -87,6 +88,8 @@ export default async function DashboardPage() {
           ⚙️ Profil sozlamalari
         </Link>
       </div>
+
+      <TelegramConnectCard />
 
       <ReferralCard />
 

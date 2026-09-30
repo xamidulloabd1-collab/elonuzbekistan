@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, isAdmin } from '@/lib/auth';
+import { removeChannelPost } from '@/lib/channel';
 
 export async function DELETE(request, { params }) {
   try {
@@ -14,7 +15,10 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ message: "Ruxsat yo'q: bu amal faqat adminlar uchun" }, { status: 403 });
     }
 
+    const existing = await prisma.listing.findUnique({ where: { id: params.id } });
+    if (!existing) return NextResponse.json({ message: "E'lon topilmadi" }, { status: 404 });
     await prisma.listing.delete({ where: { id: params.id } });
+    await removeChannelPost(existing);
     return NextResponse.json({ message: "E'lon o'chirildi" });
   } catch (err) {
     console.error("Admin: e'lonni o'chirishda xatolik:", err);

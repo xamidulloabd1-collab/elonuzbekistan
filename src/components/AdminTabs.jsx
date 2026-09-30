@@ -6,6 +6,7 @@ import { useState } from 'react';
 import AdminPanel from './AdminPanel';
 import AdminListings from './AdminListings';
 import AdminStats from './AdminStats';
+import AdminReports from './AdminReports';
 
 export default function AdminTabs() {
   const [tab, setTab] = useState('stats');
@@ -43,9 +44,19 @@ export default function AdminTabs() {
         >
           🛡️ E'lonlarni boshqarish
         </button>
+        <button
+          onClick={() => setTab('reports')}
+          className={`px-4 py-2.5 font-semibold text-sm border-b-2 transition whitespace-nowrap ${
+            tab === 'reports'
+              ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+              : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'
+          }`}
+        >
+          🚩 Shikoyatlar
+        </button>
       </div>
 
-      {tab === 'stats' ? <AdminStats /> : tab === 'requests' ? <AdminPanel /> : <AdminListings />}
+      {tab === 'reports' ? <AdminReports /> : tab === 'stats' ? <AdminStats /> : tab === 'requests' ? <AdminPanel /> : <AdminListings />}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { hashPassword, signToken, setAuthCookie } from '@/lib/auth';
 import { PHONE_ERROR, MIN_PASSWORD } from '@/lib/validators';
 import { findUserByPhone } from '@/lib/userLookup';
 import { verifyAndConsumeOtp } from '@/lib/otp';
+import { linkTelegramChat } from '@/lib/notify';
 
 export async function POST(request) {
   try {
@@ -37,6 +38,9 @@ export async function POST(request) {
       data: { passwordHash: await hashPassword(newPassword), phoneVerified: true },
       select: { id: true, name: true, phone: true, role: true },
     });
+
+    // Kod bot orqali olingan bo'lsa - Telegram bildirishnomalarini darhol ulaymiz
+    if (otp.telegramChatId) await linkTelegramChat(updated.id, otp.telegramChatId).catch(() => {});
 
     // Parol tiklangach, darhol tizimga kiritib qo'yamiz
     setAuthCookie(signToken(updated));

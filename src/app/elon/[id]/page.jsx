@@ -10,6 +10,7 @@ import FavoriteButton from '@/components/FavoriteButton';
 import ShareButton from '@/components/ShareButton';
 import MessageButton from '@/components/MessageButton';
 import ListingCard from '@/components/ListingCard';
+import ReportButton from '@/components/ReportButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,9 @@ async function getListing(id) {
       },
     });
 
-    if (!listing || listing.status !== 'ACTIVE') return null;
+    // Sotilgan e'lon ham ochiladi (masalan, Telegram kanaldagi havola orqali),
+    // lekin "Sotilgan" belgisi bilan va bog'lanish tugmalarisiz
+    if (!listing || (listing.status !== 'ACTIVE' && listing.status !== 'SOLD')) return null;
 
     // Ko'rishlar sonini oshiramiz (natijani kutmasdan - sahifa tezroq ochilishi uchun)
     prisma.listing
@@ -77,6 +80,11 @@ export default async function ListingDetailPage({ params }) {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
+          {listing.status === 'SOLD' && (
+            <div className="mb-4 p-4 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-400/20 text-blue-800 dark:text-blue-300 font-semibold">
+              ✅ Bu e'lon sotilgan. Pastda shunga o'xshash faol e'lonlarni ko'rishingiz mumkin.
+            </div>
+          )}
           <ImageGallery images={listing.images} title={listing.title} />
 
           <div className="mt-6">
@@ -123,11 +131,20 @@ export default async function ListingDetailPage({ params }) {
               </div>
             </div>
 
-            <ContactActions
-              phone={listing.contactPhone}
-              telegramUsername={listing.owner.telegramUsername}
-            />
-            <MessageButton receiverId={listing.ownerId} listingId={listing.id} />
+            {listing.status === 'ACTIVE' ? (
+              <>
+                <ContactActions
+                  phone={listing.contactPhone}
+                  telegramUsername={listing.owner.telegramUsername}
+                />
+                <MessageButton receiverId={listing.ownerId} listingId={listing.id} />
+              </>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400">E'lon sotilgan — bog'lanish imkoni yopilgan.</p>
+            )}
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/10 text-center">
+              <ReportButton listingId={listing.id} reportedUserId={listing.ownerId} />
+            </div>
           </div>
         </div>
       </div>

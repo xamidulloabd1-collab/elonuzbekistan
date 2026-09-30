@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { validateListing } from '@/lib/validators';
 import { tryConsumeVipSlot } from '@/lib/subscription';
+import { postListingToChannel } from '@/lib/channel';
+import { newExpiry } from '@/lib/listingLifecycle';
 import { sendTelegramMessage } from '@/lib/telegram';
 import { CATEGORY_LABELS, REGION_LABELS, formatPrice } from '@/lib/labels';
 
@@ -100,8 +102,13 @@ export async function POST(request) {
         images: data.images,
         ownerId: user.id,
         isVip,
+        expiresAt: newExpiry(),
       },
     });
+
+    // Telegram kanalga avtomatik post (TELEGRAM_CHANNEL_ID sozlangan bo'lsa).
+    // Xato bo'lsa ham e'lon saqlanib qoladi - postListingToChannel xatoni o'zi ushlaydi.
+    await postListingToChannel(listing);
 
     // Operatorga (Telegram botga) yangi e'lon haqida darhol xabar boradi.
     // Xabar yuborilmasa ham (bot sozlanmagan yoki tarmoq xatosi bo'lsa),

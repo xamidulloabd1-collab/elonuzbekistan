@@ -72,7 +72,7 @@ export async function getCurrentUser() {
       select: {
         id: true, name: true, phone: true, role: true, telegramUsername: true, createdAt: true,
         subscriptionPlan: true, subscriptionStatus: true, subscriptionExpiresAt: true, vipListingsUsed: true,
-        referralCode: true, bonusVipCredits: true,
+        referralCode: true, bonusVipCredits: true, telegramChatId: true,
       },
     });
 

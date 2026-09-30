@@ -152,5 +152,8 @@ export async function verifyAndConsumeOtp({ phone, purpose, code }) {
   });
   if (count === 0) return { ok: false, message: "Kod allaqachon ishlatilgan. Yangi kod so'rang" };
 
-  return { ok: true };
+  // Kod bot orqali olingan bo'lsa ("tg:<telegramId>") - chaqiruvchi foydalanuvchining
+  // Telegram'ini bildirishnomalar uchun avtomatik ulashi mumkin
+  const telegramChatId = otp.ip?.startsWith('tg:') ? otp.ip.slice(3) : null;
+  return { ok: true, telegramChatId };
 }

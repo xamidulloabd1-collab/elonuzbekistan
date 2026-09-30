@@ -5,7 +5,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Send } from 'lucide-react';
+import { Send, Ban } from 'lucide-react';
+import ReportButton from '@/components/ReportButton';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 
@@ -47,6 +48,26 @@ export default function ConversationThreadPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
+  async function toggleBlock() {
+    const other = conversation.otherUser;
+    const blocking = !conversation.blockedByMe;
+    if (blocking && !window.confirm(`${other.name} ni bloklaysizmi? U sizga yoza olmaydi, siz ham unga yoza olmaysiz.`)) return;
+    try {
+      const res = blocking
+        ? await fetch('/api/blocks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: other.id }) })
+        : await fetch(`/api/blocks?userId=${encodeURIComponent(other.id)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.message || 'Xatolik yuz berdi');
+        return;
+      }
+      setConversation((c) => ({ ...c, blockedByMe: blocking }));
+      toast.success(data.message);
+    } catch {
+      toast.error('Tarmoq xatoligi');
+    }
+  }
+
   async function handleSend(e) {
     e.preventDefault();
     if (!text.trim()) return;
@@ -85,13 +106,21 @@ export default function ConversationThreadPage() {
         ← Barcha suhbatlar
       </Link>
 
-      <div className="card p-4 mb-4">
-        <p className="font-bold">{conversation.otherUser.name}</p>
-        {conversation.listing && (
-          <Link href={`/elon/${conversation.listing.id}`} className="text-xs text-brand-600 dark:text-brand-400 hover:underline">
-            📦 {conversation.listing.title}
-          </Link>
-        )}
+      <div className="card p-4 mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-bold">{conversation.otherUser.name}</p>
+          {conversation.listing && (
+            <Link href={`/elon/${conversation.listing.id}`} className="text-xs text-brand-600 dark:text-brand-400 hover:underline">
+              📦 {conversation.listing.title}
+            </Link>
+          )}
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <button onClick={toggleBlock} className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-500 transition">
+            <Ban size={14} /> {conversation.blockedByMe ? 'Blokdan chiqarish' : 'Bloklash'}
+          </button>
+          <ReportButton reportedUserId={conversation.otherUser.id} listingId={conversation.listing?.id} />
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col gap-2 overflow-y-auto mb-4 px-1">
@@ -117,6 +146,13 @@ export default function ConversationThreadPage() {
         <div ref={bottomRef} />
       </div>
 
+      {(conversation.blockedByMe || conversation.blockedMe) ? (
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-3 border-t border-gray-100 dark:border-white/10">
+          {conversation.blockedByMe
+            ? "Siz bu foydalanuvchini bloklagansiz. Yozish uchun yuqoridan blokdan chiqaring."
+            : "Bu foydalanuvchi bilan yozishib bo'lmaydi."}
+        </p>
+      ) : (
       <form onSubmit={handleSend} className="flex gap-2 sticky bottom-0 bg-white dark:bg-surface-950 pt-2">
         <input
           value={text}
@@ -129,6 +165,7 @@ export default function ConversationThreadPage() {
           <Send size={18} />
         </button>
       </form>
+      )}
     </div>
   );
 }

@@ -44,6 +44,24 @@ export const PLAN_PRICES = {
   BIZNES: "24 990 so'm/oy",
 };
 
+// Shikoyat sabablari
+export const REPORT_REASON_LABELS = {
+  FRAUD: 'Firibgarlik',
+  WRONG_INFO: "Noto'g'ri ma'lumot yoki narx",
+  PROHIBITED: 'Taqiqlangan tovar yoki xizmat',
+  OFFENSIVE: 'Haqoratli yoki nomaqbul kontent',
+  SPAM: 'Spam yoki takroriy e\'lon',
+  OTHER: 'Boshqa sabab',
+};
+
+// E'lon holatlari (kabinet va admin uchun)
+export const LISTING_STATUS_LABELS = {
+  ACTIVE: 'Faol',
+  ARCHIVED: 'Admin tomonidan yashirilgan',
+  SOLD: 'Sotilgan',
+  EXPIRED: 'Muddati tugagan',
+};
+
 // Tariflarning oylik narxi (so'mda) - statistikadagi taxminiy daromad uchun
 export const PLAN_PRICE_UZS = {
   TADBIRKOR: 14990,
