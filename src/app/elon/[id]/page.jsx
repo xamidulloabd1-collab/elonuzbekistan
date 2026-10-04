@@ -11,6 +11,7 @@ import ShareButton from '@/components/ShareButton';
 import MessageButton from '@/components/MessageButton';
 import ListingCard from '@/components/ListingCard';
 import ReportButton from '@/components/ReportButton';
+import { ListingLocationMap } from '@/components/map';
 
 export const dynamic = 'force-dynamic';
 
@@ -112,6 +113,23 @@ export default async function ListingDetailPage({ params }) {
             <p className="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">
               {listing.description}
             </p>
+
+            {listing.latitude != null && listing.longitude != null && (
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="font-bold">📍 Joylashuv</h2>
+                  <a
+                    href={`https://yandex.uz/maps/?pt=${listing.longitude},${listing.latitude}&z=16&l=map`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline"
+                  >
+                    Yo'nalish olish →
+                  </a>
+                </div>
+                <ListingLocationMap latitude={listing.latitude} longitude={listing.longitude} />
+              </div>
+            )}
           </div>
         </div>
 

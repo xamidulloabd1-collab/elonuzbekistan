@@ -39,6 +39,8 @@ export default async function EditListingPage({ params }) {
     currency: listing.currency,
     contactPhone: listing.contactPhone,
     images: listing.images,
+    latitude: listing.latitude,
+    longitude: listing.longitude,
   };
 
   return (

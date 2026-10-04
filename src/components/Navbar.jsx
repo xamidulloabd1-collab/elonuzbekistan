@@ -8,7 +8,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, LayoutDashboard, LogOut, Tag, ShieldCheck, Menu, X, MessageCircle } from 'lucide-react';
+import { Plus, LayoutDashboard, LogOut, Tag, ShieldCheck, Menu, X, MessageCircle, Map as MapIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -68,6 +68,9 @@ export default function Navbar() {
 
         {/* Desktop navigatsiya */}
         <div className="hidden md:flex items-center gap-2">
+          <Link href="/xarita" className="text-sm font-semibold text-gray-300 hover:text-brand-400 flex items-center gap-1.5 mr-2 transition">
+            <MapIcon size={16} /> Xarita
+          </Link>
           <Link href="/tariflar" className="text-sm font-semibold text-gray-300 hover:text-brand-400 flex items-center gap-1.5 mr-2 transition">
             <Tag size={16} /> Tariflar
           </Link>
@@ -132,6 +135,7 @@ export default function Navbar() {
         <div className="md:hidden border-t border-white/5 px-4 py-3 flex flex-col gap-1 bg-surface-950">
           <Link href="/" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">🏠 Bosh sahifa</Link>
           <Link href="/elonlar" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">📋 Barcha e'lonlar</Link>
+          <Link href="/xarita" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">🗺 Xarita</Link>
           <Link href="/tariflar" onClick={() => setMenuOpen(false)} className="py-2.5 text-gray-200 font-medium">💼 Tariflar</Link>
           {user && (
             <>

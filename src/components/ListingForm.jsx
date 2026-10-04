@@ -11,10 +11,12 @@ import { CATEGORY_LABELS, REGION_LABELS, PLAN_LABELS } from '@/lib/labels';
 import { CURRENCIES } from '@/lib/validators';
 import { useAuth } from '@/context/AuthContext';
 import ImageUploader from './ImageUploader';
+import { LocationPicker } from './map';
 
 const emptyForm = {
   title: '', description: '', category: '', region: '',
   price: '', currency: 'UZS', contactPhone: '', images: [],
+  latitude: null, longitude: null,
 };
 
 const VIP_QUOTA = { BIZNES: null, TADBIRKOR: 3 }; // null = cheklovsiz
@@ -147,6 +149,18 @@ export default function ListingForm({ mode, listingId, initialData }) {
         <label className="block font-semibold mb-1">Batafsil tavsif *</label>
         <textarea name="description" value={form.description} onChange={handleChange} rows="5" placeholder="Mahsulot/xizmat haqida to'liq ma'lumot..." className="input-field" />
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+      </div>
+
+      <div>
+        <label className="block font-semibold mb-1">Xaritadagi joylashuv <span className="font-normal text-gray-400">(ixtiyoriy)</span></label>
+        <p className="text-xs text-gray-400 mb-2">Belgilasangiz, e'loningiz "🗺 Xarita" bo'limida ham chiqadi va xaridorlar uni osonroq topadi.</p>
+        <LocationPicker
+          latitude={form.latitude}
+          longitude={form.longitude}
+          region={form.region}
+          onChange={(latitude, longitude) => setForm((f) => ({ ...f, latitude, longitude }))}
+        />
+        {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location}</p>}
       </div>
 
       <div>

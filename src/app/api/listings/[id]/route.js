@@ -67,6 +67,8 @@ export async function PUT(request, { params }) {
         currency: data.currency,
         contactPhone: data.contactPhone,
         images: data.images,
+        latitude: data.latitude,
+        longitude: data.longitude,
       },
     });
 

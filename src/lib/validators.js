@@ -62,6 +62,24 @@ export function validateListing(body) {
   const contactPhone = normalizePhone(body.contactPhone);
   const images = Array.isArray(body.images) ? body.images.filter(Boolean).slice(0, 5) : [];
 
+  // Xaritadagi joylashuv ixtiyoriy. Berilgan bo'lsa - O'zbekiston chegarasi ichida bo'lishi kerak.
+  let latitude = null;
+  let longitude = null;
+  if (body.latitude !== undefined && body.latitude !== null && body.latitude !== '') {
+    latitude = Number(body.latitude);
+    longitude = Number(body.longitude);
+    const inUz = latitude >= 37.0 && latitude <= 45.7 && longitude >= 55.8 && longitude <= 73.3;
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !inUz) {
+      errors.location = "Xaritada O'zbekiston hududidagi joyni belgilang";
+      latitude = null;
+      longitude = null;
+    } else {
+      // ~1 metr aniqlik yetarli
+      latitude = Math.round(latitude * 1e5) / 1e5;
+      longitude = Math.round(longitude * 1e5) / 1e5;
+    }
+  }
+
   if (!title || title.length < 3) errors.title = "Sarlavha kamida 3 belgidan iborat bo'lishi kerak";
   if (!description || description.length < 10) errors.description = "Tavsif kamida 10 belgidan iborat bo'lishi kerak";
   if (!CATEGORIES.includes(category)) errors.category = "Kategoriyani tanlang";
@@ -73,6 +91,6 @@ export function validateListing(body) {
   return {
     valid: Object.keys(errors).length === 0,
     errors,
-    data: { title, description, category, region, price, currency, contactPhone, images },
+    data: { title, description, category, region, price, currency, contactPhone, images, latitude, longitude },
   };
 }

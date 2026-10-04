@@ -100,6 +100,8 @@ export async function POST(request) {
         currency: data.currency,
         contactPhone: data.contactPhone,
         images: data.images,
+        latitude: data.latitude,
+        longitude: data.longitude,
         ownerId: user.id,
         isVip,
         expiresAt: newExpiry(),

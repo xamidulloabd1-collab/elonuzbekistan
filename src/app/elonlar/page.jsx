@@ -1,4 +1,5 @@
 // app/elonlar/page.jsx - Qidiruv/filtr natijalari bilan e'lonlar ro'yxati
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import ListingCard from '@/components/ListingCard';
 import FilterBar from '@/components/FilterBar';
@@ -68,7 +69,15 @@ export default async function ListingsPage({ searchParams }) {
       <p className="text-gray-400 text-sm mb-4">{total} ta e'lon topildi</p>
 
       <FilterBar />
-      <RegionMap currentRegion={searchParams.region} />
+      <div className="flex flex-wrap items-start gap-2">
+        <Link
+          href={`/xarita${searchParams.category || searchParams.region ? `?${new URLSearchParams(Object.fromEntries(Object.entries({ category: searchParams.category, region: searchParams.region }).filter(([, v]) => v)))}` : ''}`}
+          className="btn-secondary !py-2 !px-4 !text-sm flex items-center gap-2"
+        >
+          🗺 Xaritada ko'rish
+        </Link>
+        <RegionMap currentRegion={searchParams.region} />
+      </div>
 
       {listings.length === 0 ? (
         <p className="text-gray-400 py-16 text-center">Hech qanday e'lon topilmadi. Filtrlarni o'zgartirib ko'ring.</p>
