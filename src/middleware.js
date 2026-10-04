@@ -18,7 +18,7 @@ export function middleware(request) {
   // "/elon/:id/tahrirlash" ham himoyalangan
   const isProtected =
     PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ||
-    /^\/elon\/[^/]+\/tahrirlash$/.test(pathname);
+    /^\/elon\/[^/]+\/(tahrirlash|stiker)$/.test(pathname);
 
   if (!isProtected) {
     return NextResponse.next();
@@ -34,5 +34,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/kabinet/:path*', '/elon-qoshish/:path*', '/admin/:path*', '/elon/:id/tahrirlash'],
+  matcher: ['/kabinet/:path*', '/elon-qoshish/:path*', '/admin/:path*', '/elon/:id/tahrirlash', '/elon/:id/stiker'],
 };

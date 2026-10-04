@@ -16,5 +16,6 @@ export async function GET() {
     include: { listing: true },
   });
 
-  return NextResponse.json({ listings: favorites.map((f) => f.listing) });
+  // Telefon raqamlari ro'yxatda berilmaydi
+  return NextResponse.json({ listings: favorites.map(({ listing: { contactPhone, ...rest } }) => rest) });
 }

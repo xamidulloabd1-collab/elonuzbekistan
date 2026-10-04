@@ -31,8 +31,18 @@ export default function ListingCard({ listing }) {
         <p className="text-brand-600 dark:text-brand-400 font-extrabold text-lg">
           {formatPrice(listing.price, listing.currency)}
         </p>
+        {(listing.installment || listing.exchangeable) && (
+          <div className="flex flex-wrap gap-1">
+            {listing.installment && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">💳 Bo'lib to'lash</span>
+            )}
+            {listing.exchangeable && (
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">🔄 Almashtiraman</span>
+            )}
+          </div>
+        )}
         <div className="flex items-center justify-between text-xs text-gray-400 mt-auto pt-1">
-          <span className="flex items-center gap-1"><MapPin size={12} /> {REGION_LABELS[listing.region]}</span>
+          <span className="flex items-center gap-1"><MapPin size={12} /> <span className="truncate max-w-[110px]">{listing.district || REGION_LABELS[listing.region]}</span></span>
           <span className="flex items-center gap-1"><Eye size={12} /> {listing.views}</span>
         </div>
       </div>

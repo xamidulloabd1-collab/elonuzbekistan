@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { validateListing } from '@/lib/validators';
 import { removeChannelPost } from '@/lib/channel';
+import { recordListingView } from '@/lib/listingStats';
 
 /**
  * GET /api/listings/:id - E'lon tafsilotlari (har safar ko'rilganda views +1)
@@ -12,19 +13,20 @@ export async function GET(request, { params }) {
   try {
     const listing = await prisma.listing.findUnique({
       where: { id: params.id },
-      include: { owner: { select: { name: true, phone: true, telegramUsername: true, createdAt: true } } },
+      include: { owner: { select: { name: true, telegramUsername: true, createdAt: true } } },
     });
 
     if (!listing) {
       return NextResponse.json({ message: "E'lon topilmadi" }, { status: 404 });
     }
 
-    // Ko'rishlar sonini oshiramiz (natijani kutmasdan, sahifa tezroq ochilishi uchun)
-    prisma.listing
-      .update({ where: { id: params.id }, data: { views: { increment: 1 } } })
-      .catch((err) => console.error("Views oshirishda xatolik:", err.message));
+    recordListingView(params.id);
 
-    return NextResponse.json({ listing: { ...listing, views: listing.views + 1 } });
+    // Telefon raqami faqat egasiga qaytariladi, boshqalar "Raqamni ko'rsatish" orqali oladi
+    const user = await getCurrentUser();
+    const { contactPhone, ...publicListing } = listing;
+    const result = user?.id === listing.ownerId ? listing : publicListing;
+    return NextResponse.json({ listing: { ...result, views: listing.views + 1 } });
   } catch (err) {
     console.error("E'lonni olishda xatolik:", err);
     return NextResponse.json({ message: "E'lonni yuklab bo'lmadi" }, { status: 500 });
@@ -69,6 +71,9 @@ export async function PUT(request, { params }) {
         images: data.images,
         latitude: data.latitude,
         longitude: data.longitude,
+        district: data.district,
+        exchangeable: data.exchangeable,
+        installment: data.installment,
       },
     });
 

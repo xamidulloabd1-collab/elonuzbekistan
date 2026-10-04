@@ -41,6 +41,9 @@ export default async function EditListingPage({ params }) {
     images: listing.images,
     latitude: listing.latitude,
     longitude: listing.longitude,
+    district: listing.district || '',
+    exchangeable: listing.exchangeable,
+    installment: listing.installment,
   };
 
   return (

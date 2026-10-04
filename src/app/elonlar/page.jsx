@@ -30,6 +30,9 @@ async function getListings(searchParams) {
   }
   if (category) where.category = category;
   if (region) where.region = region;
+  if (region && searchParams.district) where.district = searchParams.district;
+  if (searchParams.exchangeable === '1') where.exchangeable = true;
+  if (searchParams.installment === '1') where.installment = true;
   if (minPrice || maxPrice) {
     where.price = {};
     if (minPrice) where.price.gte = Number(minPrice);

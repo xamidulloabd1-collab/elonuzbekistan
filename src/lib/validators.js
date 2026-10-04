@@ -1,6 +1,7 @@
 // lib/validators.js - Server tomonida kiritilgan ma'lumotlarni tekshirish
 //
 import { toUzPhone } from './phone';
+import { isValidDistrict } from '../data/districts';
 
 // Har bir funksiya { valid: boolean, errors: { [maydon]: xabar } } qaytaradi.
 // Bu shakl frontend'da har bir maydon ostiga alohida xatolik chiqarishni osonlashtiradi.
@@ -62,6 +63,15 @@ export function validateListing(body) {
   const contactPhone = normalizePhone(body.contactPhone);
   const images = Array.isArray(body.images) ? body.images.filter(Boolean).slice(0, 5) : [];
 
+  // Tuman ixtiyoriy, lekin berilgan bo'lsa - tanlangan hududga tegishli bo'lishi kerak
+  let district = typeof body.district === 'string' ? body.district.trim() : '';
+  if (district && !isValidDistrict(region, district)) {
+    errors.district = "Tumanni ro'yxatdan tanlang";
+    district = '';
+  }
+  const exchangeable = body.exchangeable === true || body.exchangeable === 'true';
+  const installment = body.installment === true || body.installment === 'true';
+
   // Xaritadagi joylashuv ixtiyoriy. Berilgan bo'lsa - O'zbekiston chegarasi ichida bo'lishi kerak.
   let latitude = null;
   let longitude = null;
@@ -91,6 +101,6 @@ export function validateListing(body) {
   return {
     valid: Object.keys(errors).length === 0,
     errors,
-    data: { title, description, category, region, price, currency, contactPhone, images, latitude, longitude },
+    data: { title, description, category, region, price, currency, contactPhone, images, latitude, longitude, district: district || null, exchangeable, installment },
   };
 }

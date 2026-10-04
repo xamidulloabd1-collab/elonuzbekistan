@@ -118,6 +118,14 @@ model User {
   // Telegram bot orqali bildirishnoma yuborish uchun chat ID (bot'da raqamini
   // ulashgan yoki kabinetdan "Ulash" tugmasini bosgan foydalanuvchilarda bo'ladi)
   telegramChatId   String?  @unique
+
+  // Do'kon sahifasi (Biznes tarifi uchun, /sotuvchi/[id] da ko'rinadi)
+  shopName         String?
+  shopLogo         String?
+  shopAddress      String?
+  shopHours        String?
+  shopDescription  String?
+  aiUsage          AiUsage[]
   role         Role       @default(USER)
 
   // --- Tarif (obuna) holati ---
@@ -197,6 +205,15 @@ model Listing {
   latitude  Float?
   longitude Float?
 
+  // Tuman/shahar (ixtiyoriy, src/data/districts.js ro'yxatidan)
+  district     String?
+  // "Almashtiraman" va "Bo'lib to'lash bor" belgilari
+  exchangeable Boolean @default(false)
+  installment  Boolean @default(false)
+  // "Raqamni ko'rsatish" tugmasi necha marta bosilgani
+  phoneReveals Int     @default(0)
+  dailyStats   ListingDailyStat[]
+
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -208,6 +225,7 @@ model Listing {
   @@index([isVip])
   @@index([status, expiresAt])
   @@index([latitude, longitude])
+  @@index([region, district])
   @@map("listings")
 }
 
@@ -330,4 +348,27 @@ model UserBlock {
   @@id([blockerId, blockedId])
   @@index([blockedId])
   @@map("user_blocks")
+}
+
+// E'lonning kunlik statistikasi (egasi kabinetda ko'radi)
+model ListingDailyStat {
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId    String
+  day          DateTime @db.Date
+  views        Int      @default(0)
+  phoneReveals Int      @default(0)
+
+  @@id([listingId, day])
+  @@map("listing_daily_stats")
+}
+
+// Sun'iy intellekt (tavsif yozish) - foydalanuvchi bo'yicha kunlik limit
+model AiUsage {
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  day    DateTime @db.Date
+  count  Int      @default(0)
+
+  @@id([userId, day])
+  @@map("ai_usage")
 }

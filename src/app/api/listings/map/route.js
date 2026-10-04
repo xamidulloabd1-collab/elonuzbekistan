@@ -15,6 +15,9 @@ export async function GET(request) {
     const region = sp.get('region');
     if (category && CATEGORIES.includes(category)) where.category = category;
     if (region && REGIONS.includes(region)) where.region = region;
+    if (region && sp.get('district')) where.district = sp.get('district');
+    if (sp.get('exchangeable') === '1') where.exchangeable = true;
+    if (sp.get('installment') === '1') where.installment = true;
 
     const minPrice = Number(sp.get('minPrice'));
     const maxPrice = Number(sp.get('maxPrice'));

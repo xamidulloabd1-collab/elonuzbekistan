@@ -2,10 +2,10 @@
 // components/MyListingsList.jsx - Kabinetdagi "mening e'lonlarim" ro'yxati
 // (o'chirish amalini boshqaradi - muvaffaqiyatli o'chirilgach ro'yxatdan olib tashlaydi)
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Pencil, Trash2, Eye, ImageOff, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Pencil, Trash2, Eye, ImageOff, CheckCircle2, RefreshCw, Printer, Phone, MessageCircle } from 'lucide-react';
 import { formatPrice, CATEGORY_LABELS, LISTING_STATUS_LABELS } from '@/lib/labels';
 
 const daysLeft = (d) => (d ? Math.ceil((new Date(d) - Date.now()) / 86400000) : null);
@@ -32,6 +32,15 @@ export default function MyListingsList({ initialListings }) {
   const [listings, setListings] = useState(initialListings);
   const [deletingId, setDeletingId] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [stats, setStats] = useState({});
+
+  // Oxirgi 7 kunlik statistika (ko'rishlar, raqamni ochganlar, yozganlar)
+  useEffect(() => {
+    fetch('/api/listings/my-stats', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((d) => setStats(d.stats || {}))
+      .catch(() => {});
+  }, []);
 
   async function handleStatus(id, action) {
     if (action === 'sold' && !window.confirm("E'lonni \"Sotildi\" deb belgilaysizmi? U saytdan yashiriladi.")) return;
@@ -106,6 +115,19 @@ export default function MyListingsList({ initialListings }) {
             <p className="text-xs text-gray-400 flex items-center gap-2">
               {CATEGORY_LABELS[listing.category]} · <Eye size={12} className="inline" /> {listing.views}
             </p>
+            {stats[listing.id] && (
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex flex-wrap items-center gap-x-3 gap-y-0.5" title="Oxirgi 7 kun">
+                <span className="font-semibold">7 kunda:</span>
+                <span className="inline-flex items-center gap-1"><Eye size={12} /> {stats[listing.id].views7} ko'rdi</span>
+                <span className="inline-flex items-center gap-1"><Phone size={12} /> {stats[listing.id].phone7} raqamni ochdi</span>
+                <span className="inline-flex items-center gap-1"><MessageCircle size={12} /> {stats[listing.id].chats} yozdi</span>
+              </p>
+            )}
+            {listing.status === 'ACTIVE' && !listing.isVip && stats[listing.id] && stats[listing.id].views7 < 10 && (
+              <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
+                💡 Ko'rishlar kam? Rasm qo'shing, joylashuvni belgilang yoki e'lonni ⭐ VIP qiling — u ro'yxat boshida chiqadi.
+              </p>
+            )}
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               <StatusBadge listing={listing} />
               {listing.status === 'ACTIVE' && (
@@ -130,6 +152,15 @@ export default function MyListingsList({ initialListings }) {
           </div>
 
           <div className="flex gap-2 shrink-0 self-start sm:self-center">
+            {listing.status === 'ACTIVE' && (
+              <Link
+                href={`/elon/${listing.id}/stiker`}
+                title="SOTILADI stikerini chop etish"
+                className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-white/10 text-gray-500 hover:text-brand-600"
+              >
+                <Printer size={16} />
+              </Link>
+            )}
             <Link
               href={`/elon/${listing.id}/tahrirlash`}
               className="bg-gray-100 dark:bg-surface-800 hover:bg-gray-200 dark:hover:bg-gray-700 p-2 rounded-lg"

@@ -6,24 +6,28 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Star } from 'lucide-react';
+import { Star, Sparkles } from 'lucide-react';
 import { CATEGORY_LABELS, REGION_LABELS, PLAN_LABELS } from '@/lib/labels';
 import { CURRENCIES } from '@/lib/validators';
 import { useAuth } from '@/context/AuthContext';
 import ImageUploader from './ImageUploader';
 import { LocationPicker } from './map';
+import ListingQualityMeter from './ListingQualityMeter';
+import { DISTRICTS } from '@/data/districts';
 
 const emptyForm = {
   title: '', description: '', category: '', region: '',
   price: '', currency: 'UZS', contactPhone: '', images: [],
   latitude: null, longitude: null,
+  district: '', exchangeable: false, installment: false,
 };
 
 const VIP_QUOTA = { BIZNES: null, TADBIRKOR: 3 }; // null = cheklovsiz
 
 export default function ListingForm({ mode, listingId, initialData }) {
   const { user, refreshUser } = useAuth();
-  const [form, setForm] = useState(initialData || emptyForm);
+  const [form, setForm] = useState(initialData ? { ...emptyForm, ...initialData } : emptyForm);
+  const [aiLoading, setAiLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
@@ -50,7 +54,41 @@ export default function ListingForm({ mode, listingId, initialData }) {
   const [wantVip, setWantVip] = useState(true);
 
   function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setForm((f) => ({
+      ...f,
+      [name]: type === 'checkbox' ? checked : value,
+      // Hudud o'zgarsa - eski tuman endi mos kelmaydi
+      ...(name === 'region' ? { district: '' } : {}),
+    }));
+  }
+
+  async function writeWithAi() {
+    if ((form.title || '').trim().length < 3) {
+      toast.error('Avval sarlavhani yozing (masalan: "Cobalt 2019, oq")');
+      return;
+    }
+    if ((form.description || '').trim().length > 30 && !window.confirm("Hozirgi tavsif yangisi bilan almashtiriladi. Davom etasizmi?")) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch('/api/ai/description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setForm((f) => ({ ...f, description: data.description }));
+      toast.success(
+        data.description.includes('[')
+          ? "Tavsif tayyor ✨ [qavs] ichidagi joylarni o'zingiz to'ldiring"
+          : 'Tavsif tayyor ✨ Tekshirib, kerak bo\'lsa tahrirlang'
+      );
+    } catch (err) {
+      toast.error(err.message || "Tavsif yozib bo'lmadi");
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   function handleImagesChange(images) {
@@ -94,6 +132,8 @@ export default function ListingForm({ mode, listingId, initialData }) {
 
   return (
     <form onSubmit={handleSubmit} className="card p-5 sm:p-6 flex flex-col gap-4">
+      <ListingQualityMeter form={form} />
+
       <div>
         <label className="block font-semibold mb-1">Sarlavha *</label>
         <input name="title" value={form.title} onChange={handleChange} placeholder="Masalan: Chevrolet Cobalt, 2021" className="input-field" />
@@ -124,6 +164,19 @@ export default function ListingForm({ mode, listingId, initialData }) {
         </div>
       </div>
 
+      {form.region && DISTRICTS[form.region] && (
+        <div>
+          <label className="block font-semibold mb-1">Tuman / shahar <span className="font-normal text-gray-400">(tavsiya etiladi)</span></label>
+          <select name="district" value={form.district || ''} onChange={handleChange} className="input-field">
+            <option value="">Tanlang</option>
+            {DISTRICTS[form.region].map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+          {errors.district && <p className="text-red-500 text-sm mt-1">{errors.district}</p>}
+        </div>
+      )}
+
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block font-semibold mb-1">Narx *</label>
@@ -145,8 +198,29 @@ export default function ListingForm({ mode, listingId, initialData }) {
         {errors.contactPhone && <p className="text-red-500 text-sm mt-1">{errors.contactPhone}</p>}
       </div>
 
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
+        <label className="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+          <input type="checkbox" name="installment" checked={Boolean(form.installment)} onChange={handleChange} className="w-4 h-4 accent-emerald-600" />
+          💳 Bo'lib to'lash bor
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+          <input type="checkbox" name="exchangeable" checked={Boolean(form.exchangeable)} onChange={handleChange} className="w-4 h-4 accent-purple-600" />
+          🔄 Almashtirishga roziman
+        </label>
+      </div>
+
       <div>
-        <label className="block font-semibold mb-1">Batafsil tavsif *</label>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <label className="block font-semibold">Batafsil tavsif *</label>
+          <button
+            type="button"
+            onClick={writeWithAi}
+            disabled={aiLoading}
+            className="inline-flex items-center gap-1.5 text-sm font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-500 to-brand-500 text-white disabled:opacity-60"
+          >
+            <Sparkles size={14} /> {aiLoading ? 'Yozilmoqda...' : 'Tavsifni yozib ber'}
+          </button>
+        </div>
         <textarea name="description" value={form.description} onChange={handleChange} rows="5" placeholder="Mahsulot/xizmat haqida to'liq ma'lumot..." className="input-field" />
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>

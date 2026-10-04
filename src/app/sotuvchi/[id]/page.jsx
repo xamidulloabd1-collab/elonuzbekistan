@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { User as UserIcon, Calendar, Package } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { hasActivePlan } from '@/lib/subscription';
 import ListingCard from '@/components/ListingCard';
 
 export const dynamic = 'force-dynamic';
@@ -11,7 +12,10 @@ async function getSellerData(id) {
   try {
     const seller = await prisma.user.findUnique({
       where: { id },
-      select: { id: true, name: true, createdAt: true, subscriptionPlan: true, subscriptionStatus: true, phoneVerified: true },
+      select: {
+        id: true, name: true, createdAt: true, subscriptionPlan: true, subscriptionStatus: true, subscriptionExpiresAt: true, phoneVerified: true,
+        shopName: true, shopLogo: true, shopAddress: true, shopHours: true, shopDescription: true,
+      },
     });
     if (!seller) return null;
 
@@ -36,17 +40,40 @@ export default async function SellerProfilePage({ params }) {
   if (!data) notFound();
 
   const { seller, listings } = data;
-  const isBusiness = seller.subscriptionStatus === 'ACTIVE' && seller.subscriptionPlan === 'BIZNES';
+  const isBusiness = hasActivePlan(seller, 'BIZNES');
+  // Do'kon ko'rinishi: faqat faol Biznes tarifi va do'kon nomi kiritilgan bo'lsa
+  const shop = isBusiness && seller.shopName ? seller : null;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {shop && (
+        <div className="relative overflow-hidden rounded-3xl bg-surface-950 text-white p-6 sm:p-8 mb-6">
+          <div className="glow-orb w-72 h-72 bg-brand-500/30 -top-24 -right-16" />
+          <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+            <div className="w-24 h-24 rounded-2xl bg-white/10 overflow-hidden flex items-center justify-center shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              {shop.shopLogo ? <img src={shop.shopLogo} alt={shop.shopName} className="w-full h-full object-cover" /> : <span className="text-4xl">🏪</span>}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold tracking-widest text-brand-400 mb-1">🏢 RASMIY DO'KON</p>
+              <h1 className="text-2xl sm:text-3xl font-extrabold">{shop.shopName}</h1>
+              <div className="flex flex-col gap-1 mt-2 text-sm text-gray-300">
+                {shop.shopAddress && <span>📍 {shop.shopAddress}</span>}
+                {shop.shopHours && <span>🕘 {shop.shopHours}</span>}
+              </div>
+              {shop.shopDescription && <p className="mt-3 text-gray-300 whitespace-pre-line max-w-2xl">{shop.shopDescription}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-8 text-center sm:text-left">
         <div className="w-20 h-20 rounded-full bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center shrink-0">
           <UserIcon className="text-brand-600 dark:text-brand-400" size={36} />
         </div>
         <div>
           <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
-            <h1 className="text-2xl font-bold">{seller.name}</h1>
+            <h1 className={shop ? 'text-xl font-bold' : 'text-2xl font-bold'}>{seller.name}</h1>
             {seller.phoneVerified && (
               <span className="bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-xs font-bold px-2.5 py-1 rounded-full">
                 ✓ Raqami tasdiqlangan

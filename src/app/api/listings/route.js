@@ -23,10 +23,16 @@ export async function GET(request) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const district = searchParams.get('district');
+    const exchangeable = searchParams.get('exchangeable') === '1';
+    const installment = searchParams.get('installment') === '1';
     const pageSize = 20;
 
     // Prisma "where" shartini bosqichma-bosqich yig'amiz
     const where = { status: 'ACTIVE' };
+    if (district) where.district = district;
+    if (exchangeable) where.exchangeable = true;
+    if (installment) where.installment = true;
 
     if (search) {
       // Kalit so'z bo'yicha sarlavha yoki tavsifdan qidirish (katta-kichik harflarga sezgir emas)
@@ -50,13 +56,14 @@ export async function GET(request) {
         orderBy: [{ isVip: 'desc' }, { createdAt: 'desc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: { owner: { select: { name: true, phone: true } } },
+        include: { owner: { select: { name: true } } },
       }),
       prisma.listing.count({ where }),
     ]);
 
     return NextResponse.json({
-      listings,
+      // Telefon raqamlari ro'yxatda berilmaydi - faqat "Raqamni ko'rsatish" orqali
+      listings: listings.map(({ contactPhone, ...rest }) => rest),
       pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
     });
   } catch (err) {
@@ -102,6 +109,9 @@ export async function POST(request) {
         images: data.images,
         latitude: data.latitude,
         longitude: data.longitude,
+        district: data.district,
+        exchangeable: data.exchangeable,
+        installment: data.installment,
         ownerId: user.id,
         isVip,
         expiresAt: newExpiry(),

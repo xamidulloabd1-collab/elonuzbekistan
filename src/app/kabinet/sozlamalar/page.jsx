@@ -6,6 +6,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import BlockedUsersList from '@/components/BlockedUsersList';
+import ShopSettings from '@/components/ShopSettings';
 import DeleteAccountSection from '@/components/DeleteAccountSection';
 
 export default function SettingsPage() {
@@ -180,6 +181,8 @@ export default function SettingsPage() {
           {savingPwd ? 'Saqlanmoqda...' : "Parolni o'zgartirish"}
         </button>
       </form>
+
+      <ShopSettings />
 
       <BlockedUsersList />
 

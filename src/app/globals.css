@@ -93,3 +93,51 @@ body {
   box-shadow: 0 2px 8px rgba(21, 101, 216, 0.5);
 }
 .leaflet-popup-content { margin: 10px; }
+
+/* ===== "SOTILADI" stikeri (chop etish uchun) ===== */
+.sticker-sheet {
+  margin: 0 auto 32px;
+  background: #fff;
+  color: #0b1220;
+  border: 3px solid #0b1220;
+  display: flex;
+  flex-direction: column;
+  font-family: Manrope, 'Segoe UI', sans-serif;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+.sticker-a4 { width: 190mm; min-height: 270mm; }
+.sticker-a5 { width: 136mm; min-height: 190mm; }
+.sticker-head {
+  background: #e11d2e;
+  color: #fff;
+  text-align: center;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding: 6mm 0;
+}
+.sticker-a4 .sticker-head { font-size: 34mm; line-height: 1; }
+.sticker-a5 .sticker-head { font-size: 22mm; line-height: 1; }
+.sticker-body { flex: 1; padding: 8mm 10mm; display: flex; flex-direction: column; gap: 5mm; }
+.sticker-title { font-weight: 800; font-size: 11mm; line-height: 1.15; overflow-wrap: anywhere; }
+.sticker-a5 .sticker-title { font-size: 7.5mm; }
+.sticker-price { font-weight: 900; font-size: 14mm; color: #1565d8; line-height: 1.1; }
+.sticker-a5 .sticker-price { font-size: 9.5mm; }
+.sticker-phone { font-weight: 900; font-size: 13mm; line-height: 1.1; white-space: nowrap; }
+.sticker-a5 .sticker-phone { font-size: 8.5mm; }
+.sticker-qr-row { display: flex; align-items: center; gap: 6mm; margin-top: auto; }
+.sticker-qr { width: 85mm; height: 85mm; flex-shrink: 0; }
+.sticker-a5 .sticker-qr { width: 42mm; height: 42mm; }
+.sticker-qr svg { width: 100%; height: 100%; display: block; }
+.sticker-qr-text { display: flex; flex-direction: column; gap: 3mm; font-size: 7.5mm; line-height: 1.25; }
+.sticker-a5 .sticker-qr-text { font-size: 4.2mm; }
+.sticker-qr-text span { color: #4a5568; font-size: 0.8em; }
+.sticker-foot { background: #0b1220; color: #fff; text-align: center; padding: 4mm; font-size: 6mm; }
+.sticker-foot b { color: #5ea2ff; }
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  header, footer, .no-print { display: none !important; }
+  body { background: #fff !important; }
+  .sticker-sheet { box-shadow: none; margin: 0 auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .sticker-a4 { min-height: 275mm; }
+}

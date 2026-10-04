@@ -12,6 +12,14 @@ import MessageButton from '@/components/MessageButton';
 import ListingCard from '@/components/ListingCard';
 import ReportButton from '@/components/ReportButton';
 import { ListingLocationMap } from '@/components/map';
+import { recordListingView } from '@/lib/listingStats';
+
+// "+998901234567" -> "+998 90 *** ** **" (operator kodi ko'rinadi, raqamning o'zi yashirin)
+function maskPhone(phone) {
+  const d = String(phone || '').replace(/\D/g, '');
+  const local = d.length >= 12 ? d.slice(3) : d.slice(-9);
+  return local.length === 9 ? `+998 ${local.slice(0, 2)} *** ** **` : '';
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +28,7 @@ async function getListing(id) {
     const listing = await prisma.listing.findUnique({
       where: { id },
       include: {
-        owner: { select: { name: true, phone: true, telegramUsername: true, createdAt: true } },
+        owner: { select: { name: true, telegramUsername: true, createdAt: true } },
       },
     });
 
@@ -28,10 +36,8 @@ async function getListing(id) {
     // lekin "Sotilgan" belgisi bilan va bog'lanish tugmalarisiz
     if (!listing || (listing.status !== 'ACTIVE' && listing.status !== 'SOLD')) return null;
 
-    // Ko'rishlar sonini oshiramiz (natijani kutmasdan - sahifa tezroq ochilishi uchun)
-    prisma.listing
-      .update({ where: { id }, data: { views: { increment: 1 } } })
-      .catch((err) => console.error('Views oshirishda xatolik:', err.message));
+    // Ko'rishlar sonini (umumiy + kunlik) yozamiz - natijani kutmasdan
+    recordListingView(id);
 
     return { ...listing, views: listing.views + 1 };
   } catch (err) {
@@ -103,8 +109,23 @@ export default async function ListingDetailPage({ params }) {
               {formatPrice(listing.price, listing.currency)}
             </p>
 
+            {(listing.exchangeable || listing.installment) && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {listing.installment && (
+                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                    💳 Bo'lib to'lash bor
+                  </span>
+                )}
+                {listing.exchangeable && (
+                  <span className="text-sm font-bold px-3 py-1 rounded-full bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
+                    🔄 Almashtiraman
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-6">
-              <span className="flex items-center gap-1"><MapPin size={14} /> {REGION_LABELS[listing.region]}</span>
+              <span className="flex items-center gap-1"><MapPin size={14} /> {REGION_LABELS[listing.region]}{listing.district ? `, ${listing.district}` : ''}</span>
               <span className="flex items-center gap-1"><Eye size={14} /> {listing.views} marta ko'rilgan</span>
               <span className="flex items-center gap-1"><Calendar size={14} /> {formatDate(listing.createdAt)}</span>
             </div>
@@ -152,7 +173,8 @@ export default async function ListingDetailPage({ params }) {
             {listing.status === 'ACTIVE' ? (
               <>
                 <ContactActions
-                  phone={listing.contactPhone}
+                  listingId={listing.id}
+                  maskedPhone={maskPhone(listing.contactPhone)}
                   telegramUsername={listing.owner.telegramUsername}
                 />
                 <MessageButton receiverId={listing.ownerId} listingId={listing.id} />
